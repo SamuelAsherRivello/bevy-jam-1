@@ -1,0 +1,42 @@
+﻿# Build artifacts
+target/
+dist/
+
+# Hot-reload DLL copies (timestamped, binary, never useful for context)
+target/hot-reload/
+
+# Lock file (large, auto-generated)
+Cargo.lock
+
+# IDE and editor directories
+.idea/
+.vscode/
+*.iml
+
+# OS artifacts
+Thumbs.db
+.DS_Store
+desktop.ini
+
+# Compiled binaries and libraries
+*.exe
+*.dll
+*.pdb
+*.rlib
+*.so
+*.dylib
+*.exp
+*.lib
+*.d
+
+# Incremental compilation cache
+target/debug/incremental/
+target/release/incremental/
+
+# Dependency build output (not source, not useful)
+target/debug/build/
+target/release/build/
+
+# Log files
+*.log
+

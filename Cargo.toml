@@ -1,0 +1,31 @@
+[workspace]
+members = ["Bevy/Crates/Game", "Bevy/Crates/Shared"]
+exclude = ["Bevy/Crates/Shared/Runtime/3rdParty/bevy_simple_subsecond_system"]
+resolver = "3"
+
+[profile.dev]
+debug = 0
+incremental = true
+codegen-units = 256
+
+[profile.dev.build-override]
+debug = 0
+incremental = true
+codegen-units = 256
+
+[profile.dev.package."*"]
+opt-level = 3
+
+[profile.desktop-dev]
+inherits = "dev"
+debug = 0
+incremental = true
+codegen-units = 256
+
+[profile.desktop-dev.build-override]
+debug = 0
+incremental = true
+codegen-units = 256
+
+[profile.desktop-dev.package."*"]
+opt-level = 3

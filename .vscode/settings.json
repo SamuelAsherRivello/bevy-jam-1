@@ -1,0 +1,21 @@
+{
+    "chat.tools.terminal.autoApprove": {
+        "*": true,
+        "cargo test": true
+    },
+    "rust-analyzer.cargo.extraEnv": {
+        "RUSTUP_TOOLCHAIN": "stable-x86_64-pc-windows-msvc"
+    },
+    "rust-analyzer.check.extraEnv": {
+        "RUSTUP_TOOLCHAIN": "stable-x86_64-pc-windows-msvc"
+    },
+    "rust-analyzer.server.extraEnv": {
+        "RUSTUP_TOOLCHAIN": "stable-x86_64-pc-windows-msvc"
+    },
+    "rust-analyzer.rustup.toolchain": "stable-x86_64-pc-windows-msvc",
+    "code-runner.runInTerminal": true,
+    "code-runner.saveFileBeforeRun": true,
+    "code-runner.executorMapByFileExtension": {
+        ".ps1": "powershell.exe -ExecutionPolicy Bypass -File"
+    }
+}

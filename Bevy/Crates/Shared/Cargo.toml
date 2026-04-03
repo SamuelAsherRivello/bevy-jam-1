@@ -1,0 +1,13 @@
+[package]
+name = "shared"
+version = "0.1.0"
+edition = "2024"
+autotests = false
+
+[lib]
+path = "Runtime/Lib.rs"
+
+[dependencies]
+bevy = { version = "0.18.1", features = ["wav"] }
+bevy-inspector-egui = "0.36.0"
+bevy_simple_subsecond_system = { path = "Runtime/3rdParty/bevy_simple_subsecond_system" }
