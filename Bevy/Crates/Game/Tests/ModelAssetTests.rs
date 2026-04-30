@@ -29,392 +29,405 @@ macro_rules! model_asset_test {
     };
 }
 
-model_asset_test!(models_airplane_airplane_glb, "Models/airplane/airplane.glb");
-model_asset_test!(models_airplane_old_scene_gltf, "Models/airplane_old/scene.gltf");
+model_asset_test!(
+    models_airplane_airplane_glb,
+    "Models/Vehicles/airplane/airplane.glb"
+);
+model_asset_test!(
+    models_airplane_old_scene_gltf,
+    "Models/Vehicles/airplane_old/scene.gltf"
+);
 model_asset_test!(
     models_clouds_low_poly_clouds_glb,
-    "Models/clouds/LOW-POLY CLOUDS.glb"
+    "Models/Objects/clouds/LOW-POLY CLOUDS.glb"
 );
 model_asset_test!(
     models_flying_island_4b6c21bd6b904ae8d27bbf175766ed6d_glb,
-    "Models/flying_island/4b6c21bd6b904ae8d27bbf175766ed6d.glb"
+    "Models/Terrain/flying_island/4b6c21bd6b904ae8d27bbf175766ed6d.glb"
 );
 model_asset_test!(
     models_flying_island_9111845d59db7180982f909907d1716f_glb,
-    "Models/flying_island/9111845d59db7180982f909907d1716f.glb"
+    "Models/Terrain/flying_island/9111845d59db7180982f909907d1716f.glb"
 );
 model_asset_test!(
     models_flying_island_ced05ec5688fa0becd4f7aedf904adcd_glb,
-    "Models/flying_island/ced05ec5688fa0becd4f7aedf904adcd.glb"
+    "Models/Terrain/flying_island/ced05ec5688fa0becd4f7aedf904adcd.glb"
 );
 model_asset_test!(
     models_more_airplanes_models_a318_glb,
-    "Models/more_airplanes/models/a318.glb"
+    "Models/Vehicles/more_airplanes/models/a318.glb"
 );
 model_asset_test!(
     models_more_airplanes_models_a319_glb,
-    "Models/more_airplanes/models/a319.glb"
+    "Models/Vehicles/more_airplanes/models/a319.glb"
 );
 model_asset_test!(
     models_more_airplanes_models_a320_glb,
-    "Models/more_airplanes/models/a320.glb"
+    "Models/Vehicles/more_airplanes/models/a320.glb"
 );
 model_asset_test!(
     models_more_airplanes_models_a321_glb,
-    "Models/more_airplanes/models/a321.glb"
+    "Models/Vehicles/more_airplanes/models/a321.glb"
 );
 model_asset_test!(
     models_more_airplanes_models_a332_glb,
-    "Models/more_airplanes/models/a332.glb"
+    "Models/Vehicles/more_airplanes/models/a332.glb"
 );
 model_asset_test!(
     models_more_airplanes_models_a333_glb,
-    "Models/more_airplanes/models/a333.glb"
+    "Models/Vehicles/more_airplanes/models/a333.glb"
 );
 model_asset_test!(
     models_more_airplanes_models_a343_glb,
-    "Models/more_airplanes/models/a343.glb"
+    "Models/Vehicles/more_airplanes/models/a343.glb"
 );
 model_asset_test!(
     models_more_airplanes_models_a346_glb,
-    "Models/more_airplanes/models/a346.glb"
+    "Models/Vehicles/more_airplanes/models/a346.glb"
 );
 model_asset_test!(
     models_more_airplanes_models_a359_glb,
-    "Models/more_airplanes/models/a359.glb"
+    "Models/Vehicles/more_airplanes/models/a359.glb"
 );
 model_asset_test!(
     models_more_airplanes_models_a380_glb,
-    "Models/more_airplanes/models/a380.glb"
+    "Models/Vehicles/more_airplanes/models/a380.glb"
 );
 model_asset_test!(
     models_more_airplanes_models_an225_gltf,
-    "Models/more_airplanes/models/an225.gltf"
+    "Models/Vehicles/more_airplanes/models/an225.gltf"
 );
 model_asset_test!(
     models_more_airplanes_models_ask21_glb,
-    "Models/more_airplanes/models/ask21.glb"
+    "Models/Vehicles/more_airplanes/models/ask21.glb"
 );
 model_asset_test!(
     models_more_airplanes_models_atr42_glb,
-    "Models/more_airplanes/models/atr42.glb"
+    "Models/Vehicles/more_airplanes/models/atr42.glb"
 );
 model_asset_test!(
     models_more_airplanes_models_b736_glb,
-    "Models/more_airplanes/models/b736.glb"
+    "Models/Vehicles/more_airplanes/models/b736.glb"
 );
 model_asset_test!(
     models_more_airplanes_models_b737_glb,
-    "Models/more_airplanes/models/b737.glb"
+    "Models/Vehicles/more_airplanes/models/b737.glb"
 );
 model_asset_test!(
     models_more_airplanes_models_b738_glb,
-    "Models/more_airplanes/models/b738.glb"
+    "Models/Vehicles/more_airplanes/models/b738.glb"
 );
 model_asset_test!(
     models_more_airplanes_models_b739_glb,
-    "Models/more_airplanes/models/b739.glb"
+    "Models/Vehicles/more_airplanes/models/b739.glb"
 );
 model_asset_test!(
     models_more_airplanes_models_b744_glb,
-    "Models/more_airplanes/models/b744.glb"
+    "Models/Vehicles/more_airplanes/models/b744.glb"
 );
 model_asset_test!(
     models_more_airplanes_models_b748_glb,
-    "Models/more_airplanes/models/b748.glb"
+    "Models/Vehicles/more_airplanes/models/b748.glb"
 );
 model_asset_test!(
     models_more_airplanes_models_b752_glb,
-    "Models/more_airplanes/models/b752.glb"
+    "Models/Vehicles/more_airplanes/models/b752.glb"
 );
 model_asset_test!(
     models_more_airplanes_models_b753_glb,
-    "Models/more_airplanes/models/b753.glb"
+    "Models/Vehicles/more_airplanes/models/b753.glb"
 );
 model_asset_test!(
     models_more_airplanes_models_b762_glb,
-    "Models/more_airplanes/models/b762.glb"
+    "Models/Vehicles/more_airplanes/models/b762.glb"
 );
 model_asset_test!(
     models_more_airplanes_models_b763_glb,
-    "Models/more_airplanes/models/b763.glb"
+    "Models/Vehicles/more_airplanes/models/b763.glb"
 );
 model_asset_test!(
     models_more_airplanes_models_b764_glb,
-    "Models/more_airplanes/models/b764.glb"
+    "Models/Vehicles/more_airplanes/models/b764.glb"
 );
 model_asset_test!(
     models_more_airplanes_models_b772_glb,
-    "Models/more_airplanes/models/b772.glb"
+    "Models/Vehicles/more_airplanes/models/b772.glb"
 );
 model_asset_test!(
     models_more_airplanes_models_b773_glb,
-    "Models/more_airplanes/models/b773.glb"
+    "Models/Vehicles/more_airplanes/models/b773.glb"
 );
 model_asset_test!(
     models_more_airplanes_models_b788_glb,
-    "Models/more_airplanes/models/b788.glb"
+    "Models/Vehicles/more_airplanes/models/b788.glb"
 );
 model_asset_test!(
     models_more_airplanes_models_b789_glb,
-    "Models/more_airplanes/models/b789.glb"
+    "Models/Vehicles/more_airplanes/models/b789.glb"
 );
 model_asset_test!(
     models_more_airplanes_models_bae146_glb,
-    "Models/more_airplanes/models/bae146.glb"
+    "Models/Vehicles/more_airplanes/models/bae146.glb"
 );
 model_asset_test!(
     models_more_airplanes_models_beluga_glb,
-    "Models/more_airplanes/models/beluga.glb"
+    "Models/Vehicles/more_airplanes/models/beluga.glb"
 );
 model_asset_test!(
     models_more_airplanes_models_citation_glb,
-    "Models/more_airplanes/models/citation.glb"
+    "Models/Vehicles/more_airplanes/models/citation.glb"
 );
 model_asset_test!(
     models_more_airplanes_models_crj700_glb,
-    "Models/more_airplanes/models/crj700.glb"
+    "Models/Vehicles/more_airplanes/models/crj700.glb"
 );
 model_asset_test!(
     models_more_airplanes_models_crj900_glb,
-    "Models/more_airplanes/models/crj900.glb"
+    "Models/Vehicles/more_airplanes/models/crj900.glb"
 );
 model_asset_test!(
     models_more_airplanes_models_cs100_glb,
-    "Models/more_airplanes/models/cs100.glb"
+    "Models/Vehicles/more_airplanes/models/cs100.glb"
 );
 model_asset_test!(
     models_more_airplanes_models_cs300_glb,
-    "Models/more_airplanes/models/cs300.glb"
+    "Models/Vehicles/more_airplanes/models/cs300.glb"
 );
 model_asset_test!(
     models_more_airplanes_models_e170_glb,
-    "Models/more_airplanes/models/e170.glb"
+    "Models/Vehicles/more_airplanes/models/e170.glb"
 );
 model_asset_test!(
     models_more_airplanes_models_e190_glb,
-    "Models/more_airplanes/models/e190.glb"
+    "Models/Vehicles/more_airplanes/models/e190.glb"
 );
 model_asset_test!(
     models_more_airplanes_models_heli_glb,
-    "Models/more_airplanes/models/heli.glb"
+    "Models/Vehicles/more_airplanes/models/heli.glb"
 );
 model_asset_test!(
     models_more_airplanes_models_millennium_falcon_gltf,
-    "Models/more_airplanes/models/millennium_falcon.gltf"
+    "Models/Vehicles/more_airplanes/models/millennium_falcon.gltf"
 );
 model_asset_test!(
     models_more_airplanes_models_pa28_glb,
-    "Models/more_airplanes/models/pa28.glb"
+    "Models/Vehicles/more_airplanes/models/pa28.glb"
 );
 model_asset_test!(
     models_more_airplanes_models_q400_glb,
-    "Models/more_airplanes/models/q400.glb"
+    "Models/Vehicles/more_airplanes/models/q400.glb"
 );
 model_asset_test!(
     models_terrain_dristibute_gn_terrain_dristibute_gn_glb,
-    "Models/terrain_dristibute_gn/terrain_dristibute_gn.glb"
+    "Models/Terrain/terrain_dristibute_gn/terrain_dristibute_gn.glb"
 );
 model_asset_test!(
     models_terrain_dristibute_gn_terrain_dristibute_gn_bevy_glb,
-    "Models/terrain_dristibute_gn/terrain_dristibute_gn_bevy.glb"
+    "Models/Terrain/terrain_dristibute_gn/terrain_dristibute_gn_bevy.glb"
+);
+model_asset_test!(
+    models_terrain_terrain_test_2_terrain_test_2_glb,
+    "Models/Terrain/terrain_test_2/terrain_test_2.glb"
 );
 model_asset_test!(
     models_war_plane_scene_bevy_optimized_glb,
-    "Models/war_plane/scene_bevy_optimized.glb"
+    "Models/Vehicles/war_plane/scene_bevy_optimized.glb"
 );
 model_asset_test!(
     models_war_plane_scene_bevy_gltf,
-    "Models/war_plane/scene_bevy.gltf"
+    "Models/Vehicles/war_plane/scene_bevy.gltf"
 );
 model_asset_test!(
     models_war_plane_scene_metalrough_gltf,
-    "Models/war_plane/scene_metalrough.gltf"
+    "Models/Vehicles/war_plane/scene_metalrough.gltf"
 );
-model_asset_test!(models_war_plane_scene_gltf, "Models/war_plane/scene.gltf");
+model_asset_test!(
+    models_war_plane_scene_gltf,
+    "Models/Vehicles/war_plane/scene.gltf"
+);
 model_asset_test!(
     models_watercrafts_models_glb_format_arrow_standing_glb,
-    "Models/watercrafts/Models/GLB format/arrow-standing.glb"
+    "Models/Vehicles/watercrafts/Models/GLB format/arrow-standing.glb"
 );
 model_asset_test!(
     models_watercrafts_models_glb_format_arrow_glb,
-    "Models/watercrafts/Models/GLB format/arrow.glb"
+    "Models/Vehicles/watercrafts/Models/GLB format/arrow.glb"
 );
 model_asset_test!(
     models_watercrafts_models_glb_format_boat_fan_glb,
-    "Models/watercrafts/Models/GLB format/boat-fan.glb"
+    "Models/Vehicles/watercrafts/Models/GLB format/boat-fan.glb"
 );
 model_asset_test!(
     models_watercrafts_models_glb_format_boat_fishing_small_glb,
-    "Models/watercrafts/Models/GLB format/boat-fishing-small.glb"
+    "Models/Vehicles/watercrafts/Models/GLB format/boat-fishing-small.glb"
 );
 model_asset_test!(
     models_watercrafts_models_glb_format_boat_house_a_glb,
-    "Models/watercrafts/Models/GLB format/boat-house-a.glb"
+    "Models/Vehicles/watercrafts/Models/GLB format/boat-house-a.glb"
 );
 model_asset_test!(
     models_watercrafts_models_glb_format_boat_house_b_glb,
-    "Models/watercrafts/Models/GLB format/boat-house-b.glb"
+    "Models/Vehicles/watercrafts/Models/GLB format/boat-house-b.glb"
 );
 model_asset_test!(
     models_watercrafts_models_glb_format_boat_house_c_glb,
-    "Models/watercrafts/Models/GLB format/boat-house-c.glb"
+    "Models/Vehicles/watercrafts/Models/GLB format/boat-house-c.glb"
 );
 model_asset_test!(
     models_watercrafts_models_glb_format_boat_house_d_glb,
-    "Models/watercrafts/Models/GLB format/boat-house-d.glb"
+    "Models/Vehicles/watercrafts/Models/GLB format/boat-house-d.glb"
 );
 model_asset_test!(
     models_watercrafts_models_glb_format_boat_row_large_glb,
-    "Models/watercrafts/Models/GLB format/boat-row-large.glb"
+    "Models/Vehicles/watercrafts/Models/GLB format/boat-row-large.glb"
 );
 model_asset_test!(
     models_watercrafts_models_glb_format_boat_row_small_glb,
-    "Models/watercrafts/Models/GLB format/boat-row-small.glb"
+    "Models/Vehicles/watercrafts/Models/GLB format/boat-row-small.glb"
 );
 model_asset_test!(
     models_watercrafts_models_glb_format_boat_sail_a_glb,
-    "Models/watercrafts/Models/GLB format/boat-sail-a.glb"
+    "Models/Vehicles/watercrafts/Models/GLB format/boat-sail-a.glb"
 );
 model_asset_test!(
     models_watercrafts_models_glb_format_boat_sail_b_glb,
-    "Models/watercrafts/Models/GLB format/boat-sail-b.glb"
+    "Models/Vehicles/watercrafts/Models/GLB format/boat-sail-b.glb"
 );
 model_asset_test!(
     models_watercrafts_models_glb_format_boat_speed_a_glb,
-    "Models/watercrafts/Models/GLB format/boat-speed-a.glb"
+    "Models/Vehicles/watercrafts/Models/GLB format/boat-speed-a.glb"
 );
 model_asset_test!(
     models_watercrafts_models_glb_format_boat_speed_b_glb,
-    "Models/watercrafts/Models/GLB format/boat-speed-b.glb"
+    "Models/Vehicles/watercrafts/Models/GLB format/boat-speed-b.glb"
 );
 model_asset_test!(
     models_watercrafts_models_glb_format_boat_speed_c_glb,
-    "Models/watercrafts/Models/GLB format/boat-speed-c.glb"
+    "Models/Vehicles/watercrafts/Models/GLB format/boat-speed-c.glb"
 );
 model_asset_test!(
     models_watercrafts_models_glb_format_boat_speed_d_glb,
-    "Models/watercrafts/Models/GLB format/boat-speed-d.glb"
+    "Models/Vehicles/watercrafts/Models/GLB format/boat-speed-d.glb"
 );
 model_asset_test!(
     models_watercrafts_models_glb_format_boat_speed_e_glb,
-    "Models/watercrafts/Models/GLB format/boat-speed-e.glb"
+    "Models/Vehicles/watercrafts/Models/GLB format/boat-speed-e.glb"
 );
 model_asset_test!(
     models_watercrafts_models_glb_format_boat_speed_f_glb,
-    "Models/watercrafts/Models/GLB format/boat-speed-f.glb"
+    "Models/Vehicles/watercrafts/Models/GLB format/boat-speed-f.glb"
 );
 model_asset_test!(
     models_watercrafts_models_glb_format_boat_speed_g_glb,
-    "Models/watercrafts/Models/GLB format/boat-speed-g.glb"
+    "Models/Vehicles/watercrafts/Models/GLB format/boat-speed-g.glb"
 );
 model_asset_test!(
     models_watercrafts_models_glb_format_boat_speed_h_glb,
-    "Models/watercrafts/Models/GLB format/boat-speed-h.glb"
+    "Models/Vehicles/watercrafts/Models/GLB format/boat-speed-h.glb"
 );
 model_asset_test!(
     models_watercrafts_models_glb_format_boat_speed_i_glb,
-    "Models/watercrafts/Models/GLB format/boat-speed-i.glb"
+    "Models/Vehicles/watercrafts/Models/GLB format/boat-speed-i.glb"
 );
 model_asset_test!(
     models_watercrafts_models_glb_format_boat_speed_j_glb,
-    "Models/watercrafts/Models/GLB format/boat-speed-j.glb"
+    "Models/Vehicles/watercrafts/Models/GLB format/boat-speed-j.glb"
 );
 model_asset_test!(
     models_watercrafts_models_glb_format_boat_tow_a_glb,
-    "Models/watercrafts/Models/GLB format/boat-tow-a.glb"
+    "Models/Vehicles/watercrafts/Models/GLB format/boat-tow-a.glb"
 );
 model_asset_test!(
     models_watercrafts_models_glb_format_boat_tow_b_glb,
-    "Models/watercrafts/Models/GLB format/boat-tow-b.glb"
+    "Models/Vehicles/watercrafts/Models/GLB format/boat-tow-b.glb"
 );
 model_asset_test!(
     models_watercrafts_models_glb_format_boat_tug_a_glb,
-    "Models/watercrafts/Models/GLB format/boat-tug-a.glb"
+    "Models/Vehicles/watercrafts/Models/GLB format/boat-tug-a.glb"
 );
 model_asset_test!(
     models_watercrafts_models_glb_format_boat_tug_b_glb,
-    "Models/watercrafts/Models/GLB format/boat-tug-b.glb"
+    "Models/Vehicles/watercrafts/Models/GLB format/boat-tug-b.glb"
 );
 model_asset_test!(
     models_watercrafts_models_glb_format_boat_tug_c_glb,
-    "Models/watercrafts/Models/GLB format/boat-tug-c.glb"
+    "Models/Vehicles/watercrafts/Models/GLB format/boat-tug-c.glb"
 );
 model_asset_test!(
     models_watercrafts_models_glb_format_buoy_flag_glb,
-    "Models/watercrafts/Models/GLB format/buoy-flag.glb"
+    "Models/Vehicles/watercrafts/Models/GLB format/buoy-flag.glb"
 );
 model_asset_test!(
     models_watercrafts_models_glb_format_buoy_glb,
-    "Models/watercrafts/Models/GLB format/buoy.glb"
+    "Models/Vehicles/watercrafts/Models/GLB format/buoy.glb"
 );
 model_asset_test!(
     models_watercrafts_models_glb_format_cargo_container_a_glb,
-    "Models/watercrafts/Models/GLB format/cargo-container-a.glb"
+    "Models/Vehicles/watercrafts/Models/GLB format/cargo-container-a.glb"
 );
 model_asset_test!(
     models_watercrafts_models_glb_format_cargo_container_b_glb,
-    "Models/watercrafts/Models/GLB format/cargo-container-b.glb"
+    "Models/Vehicles/watercrafts/Models/GLB format/cargo-container-b.glb"
 );
 model_asset_test!(
     models_watercrafts_models_glb_format_cargo_container_c_glb,
-    "Models/watercrafts/Models/GLB format/cargo-container-c.glb"
+    "Models/Vehicles/watercrafts/Models/GLB format/cargo-container-c.glb"
 );
 model_asset_test!(
     models_watercrafts_models_glb_format_cargo_pile_a_glb,
-    "Models/watercrafts/Models/GLB format/cargo-pile-a.glb"
+    "Models/Vehicles/watercrafts/Models/GLB format/cargo-pile-a.glb"
 );
 model_asset_test!(
     models_watercrafts_models_glb_format_cargo_pile_b_glb,
-    "Models/watercrafts/Models/GLB format/cargo-pile-b.glb"
+    "Models/Vehicles/watercrafts/Models/GLB format/cargo-pile-b.glb"
 );
 model_asset_test!(
     models_watercrafts_models_glb_format_gate_finish_glb,
-    "Models/watercrafts/Models/GLB format/gate-finish.glb"
+    "Models/Vehicles/watercrafts/Models/GLB format/gate-finish.glb"
 );
 model_asset_test!(
     models_watercrafts_models_glb_format_gate_glb,
-    "Models/watercrafts/Models/GLB format/gate.glb"
+    "Models/Vehicles/watercrafts/Models/GLB format/gate.glb"
 );
 model_asset_test!(
     models_watercrafts_models_glb_format_ramp_wide_glb,
-    "Models/watercrafts/Models/GLB format/ramp-wide.glb"
+    "Models/Vehicles/watercrafts/Models/GLB format/ramp-wide.glb"
 );
 model_asset_test!(
     models_watercrafts_models_glb_format_ramp_glb,
-    "Models/watercrafts/Models/GLB format/ramp.glb"
+    "Models/Vehicles/watercrafts/Models/GLB format/ramp.glb"
 );
 model_asset_test!(
     models_watercrafts_models_glb_format_ship_cargo_a_glb,
-    "Models/watercrafts/Models/GLB format/ship-cargo-a.glb"
+    "Models/Vehicles/watercrafts/Models/GLB format/ship-cargo-a.glb"
 );
 model_asset_test!(
     models_watercrafts_models_glb_format_ship_cargo_b_glb,
-    "Models/watercrafts/Models/GLB format/ship-cargo-b.glb"
+    "Models/Vehicles/watercrafts/Models/GLB format/ship-cargo-b.glb"
 );
 model_asset_test!(
     models_watercrafts_models_glb_format_ship_cargo_c_glb,
-    "Models/watercrafts/Models/GLB format/ship-cargo-c.glb"
+    "Models/Vehicles/watercrafts/Models/GLB format/ship-cargo-c.glb"
 );
 model_asset_test!(
     models_watercrafts_models_glb_format_ship_large_glb,
-    "Models/watercrafts/Models/GLB format/ship-large.glb"
+    "Models/Vehicles/watercrafts/Models/GLB format/ship-large.glb"
 );
 model_asset_test!(
     models_watercrafts_models_glb_format_ship_ocean_liner_small_glb,
-    "Models/watercrafts/Models/GLB format/ship-ocean-liner-small.glb"
+    "Models/Vehicles/watercrafts/Models/GLB format/ship-ocean-liner-small.glb"
 );
 model_asset_test!(
     models_watercrafts_models_glb_format_ship_ocean_liner_glb,
-    "Models/watercrafts/Models/GLB format/ship-ocean-liner.glb"
+    "Models/Vehicles/watercrafts/Models/GLB format/ship-ocean-liner.glb"
 );
 model_asset_test!(
     models_watercrafts_models_glb_format_ship_small_ghost_glb,
-    "Models/watercrafts/Models/GLB format/ship-small-ghost.glb"
+    "Models/Vehicles/watercrafts/Models/GLB format/ship-small-ghost.glb"
 );
 model_asset_test!(
     models_watercrafts_models_glb_format_ship_small_glb,
-    "Models/watercrafts/Models/GLB format/ship-small.glb"
+    "Models/Vehicles/watercrafts/Models/GLB format/ship-small.glb"
 );
 
 fn asset_root_path() -> PathBuf {

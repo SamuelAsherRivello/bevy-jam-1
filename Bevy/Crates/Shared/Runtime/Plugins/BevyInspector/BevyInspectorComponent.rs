@@ -16,8 +16,8 @@ impl Default for BevyInspectorComponent {
             is_visible: false,
             x: 24.0,
             y: 200.0,
-            width: 200.0,
-            height: 300.0,
+            width: 520.0,
+            height: 620.0,
         }
     }
 }

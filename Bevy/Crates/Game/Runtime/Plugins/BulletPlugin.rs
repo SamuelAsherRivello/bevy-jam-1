@@ -2,8 +2,8 @@ use bevy::prelude::{App, IntoScheduleConfigs, Plugin, Startup, Update};
 
 use crate::{
     bullet_system::{
-        BulletSpawnMessage, bullet_despawn_update_system, bullet_floor_collision_update_system,
-        bullet_spawn_update_system, bullet_startup_system,
+        BulletSpawnMessage, bullet_despawn_update_system, bullet_spawn_update_system,
+        bullet_startup_system, bullet_terrain_collision_update_system,
     },
     player_system::player_update_system,
 };
@@ -20,7 +20,7 @@ impl Plugin for BulletPlugin {
                 (
                     bullet_spawn_update_system.after(player_update_system),
                     bullet_despawn_update_system,
-                    bullet_floor_collision_update_system,
+                    bullet_terrain_collision_update_system,
                 ),
             );
     }

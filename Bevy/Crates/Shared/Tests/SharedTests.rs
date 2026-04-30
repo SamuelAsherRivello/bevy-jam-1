@@ -89,8 +89,8 @@ fn bevy_inspector_default_values_keep_inspector_hidden() {
     assert!(!inspector.is_visible);
     assert_close(inspector.x, 24.0);
     assert_close(inspector.y, 200.0);
-    assert_close(inspector.width, 200.0);
-    assert_close(inspector.height, 300.0);
+    assert_close(inspector.width, 520.0);
+    assert_close(inspector.height, 620.0);
 }
 
 fn assert_close(actual: f32, expected: f32) {

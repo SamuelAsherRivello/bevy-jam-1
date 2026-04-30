@@ -14,9 +14,10 @@ use shared::{
 };
 
 use crate::{
-    bullet_component::BulletComponent, hud_fps_text_component::HUDFpsTextComponent,
-    hud_key_text_component::HUDKeyTextComponent, hud_resource::HUDTextResource,
-    hud_text_component::HUDTextComponent,
+    bullet_component::BulletComponent, game_scene_resource::GameSceneResource,
+    hud_fps_text_component::HUDFpsTextComponent, hud_key_text_component::HUDKeyTextComponent,
+    hud_resource::HUDTextResource, hud_text_component::HUDTextComponent,
+    nuclear_reset_component::NuclearResetComponent,
 };
 
 const FPS_UPDATE_INTERVAL_SECONDS: f32 = 0.5;
@@ -36,8 +37,8 @@ pub struct HUDUpdateParams<'w, 's> {
 }
 
 // System handles the setup of the HUD text.
-pub fn hud_startup_system(mut commands: Commands) {
-    commands
+pub fn hud_startup_system(mut commands: Commands, game_scene: Option<Res<GameSceneResource>>) {
+    let hud_entity = commands
         .spawn((
             Text::new("Waiting for game UI..."),
             TextFont {
@@ -55,6 +56,7 @@ pub fn hud_startup_system(mut commands: Commands) {
             },
             BackgroundColor(Color::srgba(0.02, 0.02, 0.02, 0.72)),
             HUDTextComponent,
+            NuclearResetComponent,
         ))
         .with_children(|parent| {
             spawn_key_span(parent, "W", KeyCode::KeyW, false);
@@ -69,8 +71,15 @@ pub fn hud_startup_system(mut commands: Commands) {
             spawn_key_span(parent, "P", KeyCode::KeyP, true);
             parent.spawn(TextSpan::new(" "));
             spawn_key_span(parent, "R", KeyCode::KeyR, false);
+            parent.spawn(TextSpan::new(" "));
+            spawn_key_span(parent, "N", KeyCode::KeyN, false);
             parent.spawn((TextSpan::new(""), HUDFpsTextComponent));
-        });
+        })
+        .id();
+
+    if let Some(scene_entity) = game_scene.as_ref().and_then(|scene| scene.entity) {
+        commands.entity(scene_entity).add_child(hud_entity);
+    }
 }
 
 #[hot]

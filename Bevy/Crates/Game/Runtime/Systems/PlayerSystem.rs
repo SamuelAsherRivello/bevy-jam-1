@@ -18,7 +18,8 @@ use bevy_simple_subsecond_system as hot_reload;
 use hot_reload::prelude::hot;
 
 use crate::{
-    bullet_system::BulletSpawnMessage, input_component::InputComponent,
+    bullet_system::BulletSpawnMessage, game_scene_resource::GameSceneResource,
+    input_component::InputComponent, nuclear_reset_component::NuclearResetComponent,
     player_component::PlayerComponent,
 };
 
@@ -26,7 +27,7 @@ use crate::{
 const PLAYER_THRUST_FORCE: f32 = 20.0; //10.0 to 30.0 works well.
 
 // Const values used in update (Hot reloadable)
-const BULLET_REPEAT_FIRE_INTERVAL_SECONDS: f32 = 0.1 / 3.0;
+const BULLET_REPEAT_FIRE_INTERVAL_SECONDS: f32 = 0.1;
 const BULLET_REPEAT_UNLOCK_DELAY_SECONDS: f32 = 0.5;
 const BULLET_SPAWN_FORWARD_OFFSET: f32 = 0.9;
 const BULLET_SPAWN_HEIGHT_OFFSET: f32 = 0.12;
@@ -34,15 +35,14 @@ const BULLET_SPAWN_HEIGHT_OFFSET: f32 = 0.12;
 // Const values used in setup (Not hot reloadable)
 const PLAYER_ANGULAR_DAMPING: f32 = 6.0;
 const PLAYER_BASE_SCALE: f32 = 1.0;
+const PLAYER_COLLIDER_SIZE: Vec3 = Vec3::new(1.0, 1.0, 1.0);
 const PLAYER_FALL_RESET_Y: f32 = -5.0;
 const PLAYER_LINEAR_DAMPING: f32 = 0.0;
 const PLAYER_MODEL_CENTER: Vec3 = Vec3::new(0.0, 3.0, 0.0);
-const PLAYER_MODEL_DEPTH: f32 = 4.523146 * PLAYER_MODEL_SCALE;
-const PLAYER_MODEL_HEIGHT: f32 = 2.5334952 * PLAYER_MODEL_SCALE;
-const PLAYER_MODEL_PATH: &str = "Models/airplane/airplane.glb";
+const PLAYER_MODEL_OFFSET: Vec3 = Vec3::new(0.0, -PLAYER_COLLIDER_SIZE.y * 0.5, 0.0);
+const PLAYER_MODEL_PATH: &str = "Models/Vehicles/airplane/airplane.glb";
 const PLAYER_MODEL_SCALE: f32 = 0.002;
-const PLAYER_MODEL_WIDTH: f32 = 11.733431 * PLAYER_MODEL_SCALE;
-const PLAYER_START_POSITION: Vec3 = Vec3::ZERO;
+const PLAYER_START_POSITION: Vec3 = Vec3::new(0.0, 2.0, 0.0);
 
 struct PlayerModelMeasurement {
     center: Vec3,
@@ -83,9 +83,9 @@ pub fn player_startup_system(world: &mut World) {
                 .with_scale(Vec3::splat(PLAYER_BASE_SCALE)),
             RigidBody::Dynamic,
             Collider::cuboid(
-                PLAYER_MODEL_WIDTH * PLAYER_BASE_SCALE,
-                PLAYER_MODEL_HEIGHT * PLAYER_BASE_SCALE,
-                PLAYER_MODEL_DEPTH * PLAYER_BASE_SCALE,
+                PLAYER_COLLIDER_SIZE.x,
+                PLAYER_COLLIDER_SIZE.y,
+                PLAYER_COLLIDER_SIZE.z,
             ),
             GravityScale(1.0),
             LinearDamping(PLAYER_LINEAR_DAMPING),
@@ -95,6 +95,7 @@ pub fn player_startup_system(world: &mut World) {
             LinearVelocity(Vec3::ZERO),
             AngularVelocity(Vec3::ZERO),
             PlayerComponent::default(),
+            NuclearResetComponent,
         ))
         .id();
 
@@ -102,14 +103,23 @@ pub fn player_startup_system(world: &mut World) {
         .spawn((
             Name::new("Player Visual"),
             player_model_scene,
-            Transform::from_translation(-PLAYER_MODEL_CENTER * PLAYER_MODEL_SCALE)
-                .with_scale(Vec3::splat(PLAYER_MODEL_SCALE)),
+            Transform::from_translation(
+                PLAYER_MODEL_OFFSET - PLAYER_MODEL_CENTER * PLAYER_MODEL_SCALE,
+            )
+            .with_scale(Vec3::splat(PLAYER_MODEL_SCALE)),
         ))
         .id();
 
     world
         .entity_mut(player_entity)
         .add_child(player_visual_entity);
+
+    if let Some(scene_entity) = world
+        .get_resource::<GameSceneResource>()
+        .and_then(|scene| scene.entity)
+    {
+        world.entity_mut(scene_entity).add_child(player_entity);
+    }
 }
 
 // System logs whether the loaded player model is inside the active camera view.
@@ -161,9 +171,9 @@ pub fn player_visibility_debug_update_system(
     let player_transform = player_global_transform.compute_transform();
     let camera_transform = camera_global_transform.compute_transform();
     let model_world_center = player_transform.translation
-        + player_transform
-            .rotation
-            .mul_vec3((measurement.center - PLAYER_MODEL_CENTER) * PLAYER_MODEL_SCALE);
+        + player_transform.rotation.mul_vec3(
+            PLAYER_MODEL_OFFSET + (measurement.center - PLAYER_MODEL_CENTER) * PLAYER_MODEL_SCALE,
+        );
     let model_world_size = measurement.size * PLAYER_MODEL_SCALE;
     let camera_space_center = camera_transform
         .to_matrix()

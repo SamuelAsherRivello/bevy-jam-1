@@ -5,9 +5,12 @@ use bevy::{math::primitives::Cuboid, prelude::*};
 use bevy_simple_subsecond_system as hot_reload;
 use hot_reload::prelude::hot;
 
-use crate::bullet_component::BulletComponent;
 use crate::bullet_resource::{
     BulletMaterialResource, BulletMeshResource, BulletSpawnSoundResource,
+};
+use crate::{
+    bullet_component::BulletComponent, game_scene_resource::GameSceneResource,
+    nuclear_reset_component::NuclearResetComponent,
 };
 
 const BULLET_SIZE: f32 = 0.16;
@@ -50,52 +53,52 @@ pub fn bullet_startup_system(
 pub fn bullet_spawn_update_system(
     mut commands: Commands,
     mut spawn_bullet_messages: MessageReader<BulletSpawnMessage>,
-    bullet_query: Query<Entity, With<BulletComponent>>,
     bullet_spawn_sound: Res<BulletSpawnSoundResource>,
     bullet_mesh: Res<BulletMeshResource>,
     bullet_material: Res<BulletMaterialResource>,
+    game_scene: Option<Res<GameSceneResource>>,
 ) {
-    let Some((bullet_position, bullet_direction)) = spawn_bullet_messages
-        .read()
-        .last()
-        .map(|spawn_message| (spawn_message.position, spawn_message.direction))
-    else {
-        return;
-    };
+    for spawn_message in spawn_bullet_messages.read() {
+        let shoot_direction = spawn_message.direction.normalize_or_zero();
+        let physics_shoot_direction =
+            (shoot_direction + Vec3::Y * PHYSICS_BULLET_UPWARD_AIM_FACTOR).normalize_or_zero();
 
-    for bullet_entity in &bullet_query {
-        commands.entity(bullet_entity).despawn();
+        let bullet_sound_entity = commands
+            .spawn((
+                AudioPlayer(bullet_spawn_sound.0.clone()),
+                PlaybackSettings::DESPAWN,
+            ))
+            .id();
+
+        let bullet_entity = commands
+            .spawn((
+                Name::new("Bullet"),
+                Mesh3d(bullet_mesh.0.clone()),
+                MeshMaterial3d(bullet_material.0.clone()),
+                Transform::from_translation(spawn_message.position),
+                BulletComponent {
+                    age_seconds: 0.0,
+                    lifetime_seconds: BULLET_LIFETIME_SECONDS,
+                },
+                RigidBody::Dynamic,
+                Collider::sphere(BULLET_COLLIDER_RADIUS),
+                GravityScale(1.0),
+                LinearVelocity(physics_shoot_direction * BULLET_SPEED_UNITS_PER_SECOND),
+                CollisionEventsEnabled,
+                NuclearResetComponent,
+            ))
+            .id();
+
+        if let Some(scene_entity) = game_scene.as_ref().and_then(|scene| scene.entity) {
+            commands.entity(scene_entity).add_child(bullet_sound_entity);
+            commands.entity(scene_entity).add_child(bullet_entity);
+        }
     }
-
-    let shoot_direction = bullet_direction.normalize_or_zero();
-    let physics_shoot_direction =
-        (shoot_direction + Vec3::Y * PHYSICS_BULLET_UPWARD_AIM_FACTOR).normalize_or_zero();
-
-    commands.spawn((
-        AudioPlayer(bullet_spawn_sound.0.clone()),
-        PlaybackSettings::DESPAWN,
-    ));
-
-    commands.spawn((
-        Name::new("Bullet"),
-        Mesh3d(bullet_mesh.0.clone()),
-        MeshMaterial3d(bullet_material.0.clone()),
-        Transform::from_translation(bullet_position),
-        BulletComponent {
-            age_seconds: 0.0,
-            lifetime_seconds: BULLET_LIFETIME_SECONDS,
-        },
-        RigidBody::Dynamic,
-        Collider::sphere(BULLET_COLLIDER_RADIUS),
-        GravityScale(1.0),
-        LinearVelocity(physics_shoot_direction * BULLET_SPEED_UNITS_PER_SECOND),
-        CollisionEventsEnabled,
-    ));
 }
 
 #[hot]
-// System handles the floor collision of the bullet projectiles.
-pub fn bullet_floor_collision_update_system(
+// System handles the terrain collision of the bullet projectiles.
+pub fn bullet_terrain_collision_update_system(
     mut commands: Commands,
     mut collision_start_messages: MessageReader<CollisionStart>,
     bullet_query: Query<&BulletComponent>,
@@ -103,14 +106,14 @@ pub fn bullet_floor_collision_update_system(
     bullet_spawn_sound: Res<BulletSpawnSoundResource>,
 ) {
     for collision_start in collision_start_messages.read() {
-        let is_floor1 = name_query
+        let is_terrain1 = name_query
             .get(collision_start.collider1)
-            .is_ok_and(|name| name.as_str() == "Floor");
-        let is_floor2 = name_query
+            .is_ok_and(|name| name.as_str() == "TerrainBundle");
+        let is_terrain2 = name_query
             .get(collision_start.collider2)
-            .is_ok_and(|name| name.as_str() == "Floor");
+            .is_ok_and(|name| name.as_str() == "TerrainBundle");
 
-        if is_floor1 {
+        if is_terrain1 {
             if bullet_query.get(collision_start.collider2).is_ok() {
                 commands.entity(collision_start.collider2).despawn();
                 commands.spawn((
@@ -120,7 +123,7 @@ pub fn bullet_floor_collision_update_system(
             }
         }
 
-        if is_floor2 {
+        if is_terrain2 {
             if bullet_query.get(collision_start.collider1).is_ok() {
                 commands.entity(collision_start.collider1).despawn();
                 commands.spawn((

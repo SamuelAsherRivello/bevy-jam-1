@@ -1,10 +1,14 @@
 use avian3d::prelude::{Gravity, PhysicsDebugPlugin, PhysicsGizmos, PhysicsPlugins};
+use bevy::app::AppExit;
 use bevy::prelude::*;
 use bevy_simple_subsecond_system as hot_reload;
 use bevy_tweening::TweeningPlugin;
 use hot_reload::prelude::SimpleSubsecondPlugin;
 use shared::{bevy_inspector_plugin, context_plugin, custom_window_plugin, custom_window_resource};
 
+#[cfg(test)]
+#[path = "../Tests/BulletTests.rs"]
+mod bullet_tests;
 #[cfg(test)]
 #[path = "../Tests/ModelAssetTests.rs"]
 mod model_asset_tests;
@@ -29,6 +33,18 @@ pub(crate) mod bullet_shader;
 pub(crate) mod bullet_system;
 #[path = "Bundles/CloudBundle.rs"]
 pub(crate) mod cloud_bundle;
+#[path = "Components/CloudComponent.rs"]
+pub(crate) mod cloud_component;
+#[path = "Systems/CloudSystem.rs"]
+pub(crate) mod cloud_system;
+#[path = "Components/GameSceneComponent.rs"]
+pub(crate) mod game_scene_component;
+#[path = "Plugins/GameScenePlugin.rs"]
+pub(crate) mod game_scene_plugin;
+#[path = "Resources/GameSceneResource.rs"]
+pub(crate) mod game_scene_resource;
+#[path = "Systems/GameSceneSystem.rs"]
+pub(crate) mod game_scene_system;
 #[path = "Components/HUDFpsTextComponent.rs"]
 pub(crate) mod hud_fps_text_component;
 #[path = "Components/HUDKeyTextComponent.rs"]
@@ -49,6 +65,12 @@ pub(crate) mod input_plugin;
 pub(crate) mod input_resource;
 #[path = "Systems/InputSystem.rs"]
 pub(crate) mod input_system;
+#[path = "Components/NuclearResetComponent.rs"]
+pub(crate) mod nuclear_reset_component;
+#[path = "Plugins/NuclearResetPlugin.rs"]
+pub(crate) mod nuclear_reset_plugin;
+#[path = "Systems/NuclearResetSystem.rs"]
+pub(crate) mod nuclear_reset_system;
 #[path = "Components/PlayerComponent.rs"]
 pub(crate) mod player_component;
 #[path = "Plugins/PlayerPlugin.rs"]
@@ -61,7 +83,8 @@ pub(crate) mod terrain_bundle;
 pub(crate) mod world_plugin;
 #[path = "Systems/WorldSystem.rs"]
 pub(crate) mod world_system;
-fn main() {
+
+fn main() -> AppExit {
     #[cfg(not(target_arch = "wasm32"))]
     {
         if std::env::var_os("WGPU_BACKEND").is_none() {
@@ -71,6 +94,10 @@ fn main() {
         }
     }
 
+    main_hot_reload().run()
+}
+
+fn main_hot_reload() -> App {
     let mut app = App::new();
 
     // Plugin handles Bevy engine defaults.
@@ -130,10 +157,13 @@ fn main() {
     app.add_plugins(bevy_inspector_plugin::BevyInspectorPlugin);
 
     // Game crate plugins.
+    // Plugin handles the reloadable game scene root.
+    app.add_plugins(game_scene_plugin::GameScenePlugin);
+
     // Plugin handles on-screen status text.
     app.add_plugins(hud_plugin::HUDPlugin);
 
-    // Plugin handles camera, lights, floor, and world setup.
+    // Plugin handles camera, lights, terrain, and world setup.
     app.add_plugins(world_plugin::WorldPlugin);
 
     // Plugin handles keyboard input state and updates.
@@ -145,5 +175,8 @@ fn main() {
     // Plugin handles bullet spawn, movement, and despawn updates.
     app.add_plugins(bullet_plugin::BulletPlugin);
 
-    app.run();
+    // Plugin handles in-window content rebuilds.
+    app.add_plugins(nuclear_reset_plugin::NuclearResetPlugin);
+
+    app
 }
