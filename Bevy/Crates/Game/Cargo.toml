@@ -22,4 +22,5 @@ bevy = { version = "0.18.1", features = ["ghost_nodes", "jpeg", "wav"] }
 bevy-inspector-egui = "0.36.0"
 bevy_simple_subsecond_system = { path = "../Shared/Runtime/3rdParty/bevy_simple_subsecond_system" }
 bevy_tweening = "0.15"
+fastrand = "2.4.1"
 shared = { path = "../Shared" }

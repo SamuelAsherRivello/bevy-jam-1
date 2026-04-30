@@ -7,22 +7,58 @@ use hot_reload::prelude::SimpleSubsecondPlugin;
 use shared::{bevy_inspector_plugin, context_plugin, custom_window_plugin, custom_window_resource};
 
 #[cfg(test)]
+#[path = "../Tests/AutopilotTests.rs"]
+mod autopilot_tests;
+#[cfg(test)]
 #[path = "../Tests/BulletTests.rs"]
 mod bullet_tests;
+#[cfg(test)]
+#[path = "../Tests/CameraAdvancedTests.rs"]
+mod camera_advanced_tests;
+#[cfg(test)]
+#[path = "../Tests/CloudTests.rs"]
+mod cloud_tests;
+#[cfg(test)]
+#[path = "../Tests/EnemyTests.rs"]
+mod enemy_tests;
+#[cfg(test)]
+#[path = "../Tests/HealthTests.rs"]
+mod health_tests;
 #[cfg(test)]
 #[path = "../Tests/ModelAssetTests.rs"]
 mod model_asset_tests;
 #[cfg(test)]
 #[path = "../Tests/PlayerTests.rs"]
 mod player_tests;
+#[cfg(test)]
+#[path = "../Tests/PropellerTests.rs"]
+mod propeller_tests;
+#[cfg(test)]
+#[path = "../Tests/TerrainTests.rs"]
+mod terrain_tests;
+#[cfg(test)]
+#[path = "../Tests/UIMiniMapTests.rs"]
+mod ui_mini_map_tests;
+#[cfg(test)]
+#[path = "../Tests/UIReticlesTests.rs"]
+mod ui_reticles_tests;
+#[cfg(test)]
+#[path = "../Tests/UIToastTests.rs"]
+mod ui_toast_tests;
 
 fn game_asset_root_path() -> String {
     format!("{}/Assets", env!("CARGO_MANIFEST_DIR")).replace('\\', "/")
 }
 
 // Modules: game-owned components, resources, and systems.
+#[path = "Utilities/AutopilotUtility.rs"]
+pub(crate) mod autopilot_utility;
 #[path = "Components/BulletComponent.rs"]
 pub(crate) mod bullet_component;
+#[path = "Components/BulletFromEnemyComponent.rs"]
+pub(crate) mod bullet_from_enemy_component;
+#[path = "Components/BulletFromPlayerComponent.rs"]
+pub(crate) mod bullet_from_player_component;
 #[path = "Plugins/BulletPlugin.rs"]
 pub(crate) mod bullet_plugin;
 #[path = "Resources/BulletResource.rs"]
@@ -31,12 +67,34 @@ pub(crate) mod bullet_resource;
 pub(crate) mod bullet_shader;
 #[path = "Systems/BulletSystem.rs"]
 pub(crate) mod bullet_system;
+#[path = "Components/CameraAdvancedComponent.rs"]
+pub(crate) mod camera_advanced_component;
+#[path = "Plugins/CameraAdvancedPlugin.rs"]
+pub(crate) mod camera_advanced_plugin;
+#[path = "Systems/CameraAdvancedSystem.rs"]
+pub(crate) mod camera_advanced_system;
 #[path = "Bundles/CloudBundle.rs"]
 pub(crate) mod cloud_bundle;
+#[path = "Utilities/CloudBundleSpawner.rs"]
+pub(crate) mod cloud_bundle_spawner;
 #[path = "Components/CloudComponent.rs"]
 pub(crate) mod cloud_component;
 #[path = "Systems/CloudSystem.rs"]
 pub(crate) mod cloud_system;
+#[path = "Bundles/EnemyBundle.rs"]
+pub(crate) mod enemy_bundle;
+#[path = "Components/EnemyComponent.rs"]
+pub(crate) mod enemy_component;
+#[path = "Plugins/EnemyPlugin.rs"]
+pub(crate) mod enemy_plugin;
+#[path = "Utilities/EnemySpawner.rs"]
+pub(crate) mod enemy_spawner;
+#[path = "Systems/EnemySystem.rs"]
+pub(crate) mod enemy_system;
+#[path = "Components/EnemyTextureTintComponent.rs"]
+pub(crate) mod enemy_texture_tint_component;
+#[path = "Components/EnemyVisualComponent.rs"]
+pub(crate) mod enemy_visual_component;
 #[path = "Components/GameSceneComponent.rs"]
 pub(crate) mod game_scene_component;
 #[path = "Plugins/GameScenePlugin.rs"]
@@ -45,18 +103,14 @@ pub(crate) mod game_scene_plugin;
 pub(crate) mod game_scene_resource;
 #[path = "Systems/GameSceneSystem.rs"]
 pub(crate) mod game_scene_system;
-#[path = "Components/HUDFpsTextComponent.rs"]
-pub(crate) mod hud_fps_text_component;
-#[path = "Components/HUDKeyTextComponent.rs"]
-pub(crate) mod hud_key_text_component;
-#[path = "Plugins/HUDPlugin.rs"]
-pub(crate) mod hud_plugin;
-#[path = "Resources/HUDResource.rs"]
-pub(crate) mod hud_resource;
-#[path = "Systems/HUDSystem.rs"]
-pub(crate) mod hud_system;
-#[path = "Components/HUDTextComponent.rs"]
-pub(crate) mod hud_text_component;
+#[path = "Components/HealthComponent.rs"]
+pub(crate) mod health_component;
+#[path = "Components/HealthDyingComponent.rs"]
+pub(crate) mod health_dying_component;
+#[path = "Plugins/HealthPlugin.rs"]
+pub(crate) mod health_plugin;
+#[path = "Systems/HealthSystem.rs"]
+pub(crate) mod health_system;
 #[path = "Components/InputComponent.rs"]
 pub(crate) mod input_component;
 #[path = "Plugins/InputPlugin.rs"]
@@ -65,20 +119,68 @@ pub(crate) mod input_plugin;
 pub(crate) mod input_resource;
 #[path = "Systems/InputSystem.rs"]
 pub(crate) mod input_system;
-#[path = "Components/NuclearResetComponent.rs"]
-pub(crate) mod nuclear_reset_component;
-#[path = "Plugins/NuclearResetPlugin.rs"]
-pub(crate) mod nuclear_reset_plugin;
-#[path = "Systems/NuclearResetSystem.rs"]
-pub(crate) mod nuclear_reset_system;
+#[path = "Bundles/PlayerBundle.rs"]
+pub(crate) mod player_bundle;
 #[path = "Components/PlayerComponent.rs"]
 pub(crate) mod player_component;
 #[path = "Plugins/PlayerPlugin.rs"]
 pub(crate) mod player_plugin;
 #[path = "Systems/PlayerSystem.rs"]
 pub(crate) mod player_system;
+#[path = "Components/PlayerVisualComponent.rs"]
+pub(crate) mod player_visual_component;
+#[path = "Components/PropellerComponent.rs"]
+pub(crate) mod propeller_component;
+#[path = "Plugins/PropellerPlugin.rs"]
+pub(crate) mod propeller_plugin;
+#[path = "Systems/PropellerSystem.rs"]
+pub(crate) mod propeller_system;
+#[path = "Components/ResetGameComponent.rs"]
+pub(crate) mod reset_game_component;
+#[path = "Plugins/ResetGamePlugin.rs"]
+pub(crate) mod reset_game_plugin;
+#[path = "Systems/ResetGameSystem.rs"]
+pub(crate) mod reset_game_system;
 #[path = "Bundles/TerrainBundle.rs"]
 pub(crate) mod terrain_bundle;
+#[path = "Bundles/TerrainGridBundle.rs"]
+pub(crate) mod terrain_grid_bundle;
+#[path = "Components/UIHUDFpsTextComponent.rs"]
+pub(crate) mod ui_hud_fps_text_component;
+#[path = "Components/UIHUDKeyTextComponent.rs"]
+pub(crate) mod ui_hud_key_text_component;
+#[path = "Plugins/UIHUDPlugin.rs"]
+pub(crate) mod ui_hud_plugin;
+#[path = "Resources/UIHUDResource.rs"]
+pub(crate) mod ui_hud_resource;
+#[path = "Systems/UIHUDSystem.rs"]
+pub(crate) mod ui_hud_system;
+#[path = "Components/UIHUDTextComponent.rs"]
+pub(crate) mod ui_hud_text_component;
+#[path = "Components/UIMiniMapComponent.rs"]
+pub(crate) mod ui_mini_map_component;
+#[path = "Plugins/UIMiniMapPlugin.rs"]
+pub(crate) mod ui_mini_map_plugin;
+#[path = "Systems/UIMiniMapSystem.rs"]
+pub(crate) mod ui_mini_map_system;
+#[path = "Components/UIMiniMapViewportComponent.rs"]
+pub(crate) mod ui_mini_map_viewport_component;
+#[path = "Resources/UIMiniMapViewportResource.rs"]
+pub(crate) mod ui_mini_map_viewport_resource;
+#[path = "Components/UIReticlesComponent.rs"]
+pub(crate) mod ui_reticles_component;
+#[path = "Plugins/UIReticlesPlugin.rs"]
+pub(crate) mod ui_reticles_plugin;
+#[path = "Systems/UIReticlesSystem.rs"]
+pub(crate) mod ui_reticles_system;
+#[path = "Components/UIToastComponent.rs"]
+pub(crate) mod ui_toast_component;
+#[path = "Plugins/UIToastPlugin.rs"]
+pub(crate) mod ui_toast_plugin;
+#[path = "Resources/UIToastQueueResource.rs"]
+pub(crate) mod ui_toast_queue_resource;
+#[path = "Systems/UIToastSystem.rs"]
+pub(crate) mod ui_toast_system;
 #[path = "Plugins/WorldPlugin.rs"]
 pub(crate) mod world_plugin;
 #[path = "Systems/WorldSystem.rs"]
@@ -161,10 +263,16 @@ fn main_hot_reload() -> App {
     app.add_plugins(game_scene_plugin::GameScenePlugin);
 
     // Plugin handles on-screen status text.
-    app.add_plugins(hud_plugin::HUDPlugin);
+    app.add_plugins(ui_hud_plugin::UIHUDPlugin);
+
+    // Plugin handles top-center UI toast messages.
+    app.add_plugins(ui_toast_plugin::UIToastPlugin);
 
     // Plugin handles camera, lights, terrain, and world setup.
     app.add_plugins(world_plugin::WorldPlugin);
+
+    // Plugin handles the main camera's target follow and look-at behavior.
+    app.add_plugins(camera_advanced_plugin::CameraAdvancedPlugin);
 
     // Plugin handles keyboard input state and updates.
     app.add_plugins(input_plugin::InputPlugin);
@@ -172,11 +280,26 @@ fn main_hot_reload() -> App {
     // Plugin handles player spawn and movement updates.
     app.add_plugins(player_plugin::PlayerPlugin);
 
+    // Plugin handles enemy spawn and autopilot movement.
+    app.add_plugins(enemy_plugin::EnemyPlugin);
+
+    // Plugin handles propeller discovery and rotation.
+    app.add_plugins(propeller_plugin::PropellerPlugin);
+
+    // Plugin handles the top-down UIMiniMap camera and viewport.
+    app.add_plugins(ui_mini_map_plugin::UIMiniMapPlugin);
+
+    // Plugin handles enemy screen-space reticles near the player.
+    app.add_plugins(ui_reticles_plugin::UIReticlesPlugin);
+
     // Plugin handles bullet spawn, movement, and despawn updates.
     app.add_plugins(bullet_plugin::BulletPlugin);
 
+    // Plugin handles health damage and death cleanup.
+    app.add_plugins(health_plugin::HealthPlugin);
+
     // Plugin handles in-window content rebuilds.
-    app.add_plugins(nuclear_reset_plugin::NuclearResetPlugin);
+    app.add_plugins(reset_game_plugin::ResetGamePlugin);
 
     app
 }

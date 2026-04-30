@@ -3185,6 +3185,7 @@ dependencies = [
  "bevy-inspector-egui",
  "bevy_simple_subsecond_system",
  "bevy_tweening",
+ "fastrand",
  "shared",
 ]
 

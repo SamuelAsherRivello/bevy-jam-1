@@ -4,7 +4,7 @@ use bevy_simple_subsecond_system::prelude::hot;
 use crate::game_scene_resource::GameSceneResource;
 use crate::input_component::InputComponent;
 use crate::input_resource::InputClickSoundResource;
-use crate::nuclear_reset_component::NuclearResetComponent;
+use crate::reset_game_component::ResetGameComponent;
 
 #[cfg(not(target_arch = "wasm32"))]
 const INPUT_CLICK_SOUND_PATH: &str = "Audio/Click01.wav";
@@ -21,7 +21,7 @@ pub fn input_startup_system(
         .spawn((
             Name::new("Input"),
             InputComponent::default(),
-            NuclearResetComponent,
+            ResetGameComponent,
         ))
         .id();
 
@@ -40,36 +40,69 @@ pub fn input_update_system(
     mut commands: Commands,
     keys: Res<ButtonInput<KeyCode>>,
     mouse_buttons: Res<ButtonInput<MouseButton>>,
+    time: Res<Time>,
     click_sound: Res<InputClickSoundResource>,
     game_scene: Option<Res<GameSceneResource>>,
     mut input_query: Query<&mut InputComponent>,
 ) {
-    let Ok(mut input) = input_query.single_mut() else {
-        return;
-    };
+    let mut is_audio_triggered = false;
 
-    input.is_shoot_pressed = keys.pressed(KeyCode::KeyS);
-    input.is_shoot_just_pressed = keys.just_pressed(KeyCode::KeyS);
+    for mut input in &mut input_query {
+        update_autopilot_state(
+            &mut input,
+            keys.just_pressed(KeyCode::KeyP),
+            time.delta_secs(),
+        );
 
-    input.is_reset_pressed = keys.pressed(KeyCode::KeyR);
-    input.is_reset_just_pressed = keys.just_pressed(KeyCode::KeyR);
+        let is_any_player_input_pressed = keys.pressed(KeyCode::KeyS)
+            || keys.pressed(KeyCode::KeyW)
+            || keys.pressed(KeyCode::ArrowUp)
+            || keys.pressed(KeyCode::ArrowDown)
+            || keys.pressed(KeyCode::KeyA)
+            || keys.pressed(KeyCode::ArrowLeft)
+            || keys.pressed(KeyCode::KeyD)
+            || keys.pressed(KeyCode::ArrowRight);
+        if input.is_player_input_release_required && !is_any_player_input_pressed {
+            input.is_player_input_release_required = false;
+        }
 
-    input.is_thrust_pressed = keys.pressed(KeyCode::KeyW);
-    input.is_thrust_just_pressed = keys.just_pressed(KeyCode::KeyW);
+        let is_player_keyboard_enabled =
+            !input.is_autopilot_enabled && !input.is_player_input_release_required;
 
-    input.is_left_arrow_pressed = keys.pressed(KeyCode::KeyA) || keys.pressed(KeyCode::ArrowLeft);
-    input.is_left_arrow_just_pressed =
-        keys.just_pressed(KeyCode::KeyA) || keys.just_pressed(KeyCode::ArrowLeft);
-    input.is_right_arrow_pressed = keys.pressed(KeyCode::KeyD) || keys.pressed(KeyCode::ArrowRight);
-    input.is_right_arrow_just_pressed =
-        keys.just_pressed(KeyCode::KeyD) || keys.just_pressed(KeyCode::ArrowRight);
+        input.is_shoot_pressed = is_player_keyboard_enabled
+            && (keys.pressed(KeyCode::KeyW) || keys.pressed(KeyCode::ArrowUp));
+        input.is_shoot_just_pressed = is_player_keyboard_enabled
+            && (keys.just_pressed(KeyCode::KeyW) || keys.just_pressed(KeyCode::ArrowUp));
 
-    let is_audio_triggered = input.is_shoot_just_pressed
-        || input.is_reset_just_pressed
-        || input.is_thrust_just_pressed
-        || input.is_left_arrow_just_pressed
-        || input.is_right_arrow_just_pressed
-        || mouse_buttons.just_pressed(MouseButton::Left);
+        input.is_reset_game_pressed = keys.pressed(KeyCode::KeyR);
+        input.is_reset_game_just_pressed = keys.just_pressed(KeyCode::KeyR);
+
+        input.is_brake_pressed = is_player_keyboard_enabled
+            && (keys.pressed(KeyCode::KeyS) || keys.pressed(KeyCode::ArrowDown));
+        input.is_brake_just_pressed = is_player_keyboard_enabled
+            && (keys.just_pressed(KeyCode::KeyS) || keys.just_pressed(KeyCode::ArrowDown));
+
+        input.is_left_arrow_pressed = is_player_keyboard_enabled
+            && (keys.pressed(KeyCode::KeyA) || keys.pressed(KeyCode::ArrowLeft));
+        input.is_left_arrow_just_pressed = is_player_keyboard_enabled
+            && (keys.just_pressed(KeyCode::KeyA) || keys.just_pressed(KeyCode::ArrowLeft));
+        input.is_right_arrow_pressed = is_player_keyboard_enabled
+            && (keys.pressed(KeyCode::KeyD) || keys.pressed(KeyCode::ArrowRight));
+        input.is_right_arrow_just_pressed = is_player_keyboard_enabled
+            && (keys.just_pressed(KeyCode::KeyD) || keys.just_pressed(KeyCode::ArrowRight));
+        input.is_ui_mini_map_viewport_toggle_pressed = keys.pressed(KeyCode::KeyO);
+        input.is_ui_mini_map_viewport_toggle_just_pressed = keys.just_pressed(KeyCode::KeyO);
+
+        is_audio_triggered |= input.is_shoot_just_pressed
+            || input.is_reset_game_just_pressed
+            || input.is_brake_just_pressed
+            || input.is_left_arrow_just_pressed
+            || input.is_right_arrow_just_pressed
+            || input.is_autopilot_toggle_just_pressed
+            || input.is_ui_mini_map_viewport_toggle_just_pressed;
+    }
+
+    is_audio_triggered |= mouse_buttons.just_pressed(MouseButton::Left);
 
     if is_audio_triggered {
         let click_sound_entity = commands
@@ -82,5 +115,25 @@ pub fn input_update_system(
         if let Some(scene_entity) = game_scene.as_ref().and_then(|scene| scene.entity) {
             commands.entity(scene_entity).add_child(click_sound_entity);
         }
+    }
+}
+
+pub(crate) fn update_autopilot_state(
+    input: &mut InputComponent,
+    is_toggle_just_pressed: bool,
+    delta_secs: f32,
+) {
+    input.is_autopilot_toggle_just_pressed = is_toggle_just_pressed;
+
+    if is_toggle_just_pressed {
+        input.is_autopilot_enabled = !input.is_autopilot_enabled;
+        input.autopilot_elapsed_seconds = 0.0;
+        return;
+    }
+
+    if input.is_autopilot_enabled {
+        input.autopilot_elapsed_seconds += delta_secs;
+    } else {
+        input.autopilot_elapsed_seconds = 0.0;
     }
 }

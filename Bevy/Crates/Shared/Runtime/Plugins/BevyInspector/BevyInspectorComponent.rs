@@ -15,7 +15,7 @@ impl Default for BevyInspectorComponent {
         Self {
             is_visible: false,
             x: 24.0,
-            y: 200.0,
+            y: 156.0,
             width: 520.0,
             height: 620.0,
         }
