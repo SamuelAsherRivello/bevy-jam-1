@@ -1,0 +1,11 @@
+Model Information:
+* title:	War Plane
+* source:	https://sketchfab.com/3d-models/war-plane-b487f1128b984da8ae8cd9ce0a02d9ba
+* author:	animanyarty (https://sketchfab.com/animanyarty)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "War Plane" (https://sketchfab.com/3d-models/war-plane-b487f1128b984da8ae8cd9ce0a02d9ba) by animanyarty (https://sketchfab.com/animanyarty) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

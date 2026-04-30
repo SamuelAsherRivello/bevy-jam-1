@@ -1,5 +1,7 @@
 use avian3d::prelude::{Collider, CollisionEventsEnabled, RigidBody};
-use bevy::{math::primitives::Cuboid, prelude::*, window::PrimaryWindow};
+use bevy::{
+    math::primitives::Cuboid, prelude::*, render::view::NoIndirectDrawing, window::PrimaryWindow,
+};
 
 #[derive(Component)]
 struct CameraComponent {
@@ -68,6 +70,7 @@ pub fn world_startup_system(
             Name::new("Camera3d"),
             Camera3d::default(),
             Msaa::Off,
+            NoIndirectDrawing,
             Transform::from_translation(camera.translation).looking_at(camera.look_at, Vec3::Y),
             camera,
         ))

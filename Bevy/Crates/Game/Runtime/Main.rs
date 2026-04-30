@@ -1,16 +1,20 @@
 use avian3d::prelude::{Gravity, PhysicsPlugins};
-use bevy::{prelude::*, window::WindowPosition};
+use bevy::prelude::*;
 use bevy_simple_subsecond_system as hot_reload;
 use bevy_tweening::TweeningPlugin;
 use hot_reload::prelude::SimpleSubsecondPlugin;
-use shared::{
-    bevy_inspector_plugin, context_plugin, custom_window_plugin, custom_window_resource,
-    custom_window_system,
-};
+use shared::{bevy_inspector_plugin, context_plugin, custom_window_plugin, custom_window_resource};
 
+#[cfg(test)]
+#[path = "../Tests/ModelAssetTests.rs"]
+mod model_asset_tests;
 #[cfg(test)]
 #[path = "../Tests/PlayerTests.rs"]
 mod player_tests;
+
+fn game_asset_root_path() -> String {
+    format!("{}/Assets", env!("CARGO_MANIFEST_DIR")).replace('\\', "/")
+}
 
 // Modules: game-owned components, resources, and systems.
 #[path = "Components/BulletComponent.rs"]
@@ -64,8 +68,6 @@ fn main() {
     }
 
     let mut app = App::new();
-    let initial_primary_window_position =
-        custom_window_system::load_custom_window_position().map(WindowPosition::At);
 
     // Plugin handles Bevy engine defaults.
     app.add_plugins(
@@ -78,7 +80,6 @@ fn main() {
                         custom_window_resource::TARGET_RESOLUTION.y,
                     )
                         .into(),
-                    position: initial_primary_window_position.unwrap_or_default(),
                     window_level: bevy::window::WindowLevel::AlwaysOnTop,
                     #[cfg(target_arch = "wasm32")]
                     fit_canvas_to_parent: true,
@@ -87,7 +88,7 @@ fn main() {
                 ..Default::default()
             })
             .set(AssetPlugin {
-                file_path: "Bevy/Crates/Game/Assets".to_owned(),
+                file_path: game_asset_root_path(),
                 ..Default::default()
             }),
     );

@@ -8,6 +8,10 @@ autotests = false
 name = "game"
 path = "Runtime/Main.rs"
 
+[[test]]
+name = "ModelAssetTests"
+path = "Tests/ModelAssetTests.rs"
+
 [features]
 default = []
 fast-hot-reload = ["bevy/dynamic_linking"]

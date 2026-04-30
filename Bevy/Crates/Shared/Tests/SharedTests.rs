@@ -1,10 +1,15 @@
-use bevy::prelude::{App, Update};
+use bevy::{
+    math::{IVec2, UVec2},
+    prelude::{App, Update},
+    window::Monitor,
+};
 
 use crate::{
     bevy_inspector_component::BevyInspectorComponent,
     context_resource::ContextResource,
     context_system::context_update_system,
     custom_window_resource::{CustomWindowResource, TARGET_ASPECT_RATIO, TARGET_RESOLUTION},
+    custom_window_system::is_custom_window_position_visible,
 };
 
 #[test]
@@ -39,6 +44,45 @@ fn custom_window_default_values_match_template_window() {
 }
 
 #[test]
+fn custom_window_position_allows_second_monitor_coordinates() {
+    let monitors = vec![
+        test_monitor(IVec2::new(0, 0), UVec2::new(1920, 1080)),
+        test_monitor(IVec2::new(1920, 0), UVec2::new(1920, 1080)),
+    ];
+
+    assert!(is_custom_window_position_visible(
+        IVec2::new(2200, 200),
+        TARGET_RESOLUTION,
+        monitors.iter()
+    ));
+}
+
+#[test]
+fn custom_window_position_allows_left_side_monitor_coordinates() {
+    let monitors = vec![
+        test_monitor(IVec2::new(-1920, 0), UVec2::new(1920, 1080)),
+        test_monitor(IVec2::new(0, 0), UVec2::new(1920, 1080)),
+    ];
+
+    assert!(is_custom_window_position_visible(
+        IVec2::new(-1400, 200),
+        TARGET_RESOLUTION,
+        monitors.iter()
+    ));
+}
+
+#[test]
+fn custom_window_position_rejects_removed_monitor_coordinates() {
+    let monitors = vec![test_monitor(IVec2::new(0, 0), UVec2::new(1920, 1080))];
+
+    assert!(!is_custom_window_position_visible(
+        IVec2::new(2200, 200),
+        TARGET_RESOLUTION,
+        monitors.iter()
+    ));
+}
+
+#[test]
 fn bevy_inspector_default_values_keep_inspector_hidden() {
     let inspector = BevyInspectorComponent::default();
 
@@ -54,4 +98,16 @@ fn assert_close(actual: f32, expected: f32) {
         (actual - expected).abs() < 1e-6,
         "expected {expected}, got {actual}"
     );
+}
+
+fn test_monitor(position: IVec2, size: UVec2) -> Monitor {
+    Monitor {
+        name: None,
+        physical_height: size.y,
+        physical_width: size.x,
+        physical_position: position,
+        refresh_rate_millihertz: None,
+        scale_factor: 1.0,
+        video_modes: Vec::new(),
+    }
 }
