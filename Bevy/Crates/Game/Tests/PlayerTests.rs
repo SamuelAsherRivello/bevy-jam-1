@@ -1,7 +1,7 @@
 use std::time::Duration;
 
 use avian3d::prelude::{AngularVelocity, ConstantForce, ConstantTorque, LinearVelocity};
-use bevy::prelude::{App, Entity, Time, Transform, Update, Vec3};
+use bevy::prelude::{App, Entity, Messages, Time, Transform, Update, Vec3};
 
 use crate::{
     bullet_system::BulletSpawnMessage, input_component::InputComponent,
@@ -51,8 +51,9 @@ fn player_update_applies_torque_from_left_and_right_flags() {
 
 #[test]
 fn player_update_just_pressed_sets_repeat_unlock_window() {
-    let updated_player = updated_player_state(
+    let (updated_player, bullet_count) = updated_player_state_and_bullet_count(
         InputComponent {
+            is_shoot_pressed: true,
             is_shoot_just_pressed: true,
             ..Default::default()
         },
@@ -62,6 +63,7 @@ fn player_update_just_pressed_sets_repeat_unlock_window() {
 
     assert_close(updated_player.bullet_repeat_unlock_delay_seconds, 0.5);
     assert_close(updated_player.bullet_fire_cooldown_seconds, 0.0);
+    assert_eq!(bullet_count, 1);
 }
 
 #[test]
@@ -85,7 +87,7 @@ fn player_update_holding_fire_waits_for_unlock_delay() {
 
 #[test]
 fn player_update_holding_fire_starts_repeat_cooldown_after_unlock() {
-    let updated_player = updated_player_state(
+    let (updated_player, bullet_count) = updated_player_state_and_bullet_count(
         InputComponent {
             is_shoot_pressed: true,
             ..Default::default()
@@ -98,13 +100,14 @@ fn player_update_holding_fire_starts_repeat_cooldown_after_unlock() {
         0.0,
     );
 
-    assert_close(updated_player.bullet_fire_cooldown_seconds, 0.1 / 3.0);
+    assert_close(updated_player.bullet_fire_cooldown_seconds, 0.1);
     assert_close(updated_player.bullet_repeat_unlock_delay_seconds, 0.0);
+    assert_eq!(bullet_count, 1);
 }
 
 #[test]
 fn player_update_holding_fire_respects_existing_cooldown() {
-    let updated_player = updated_player_state(
+    let (updated_player, bullet_count) = updated_player_state_and_bullet_count(
         InputComponent {
             is_shoot_pressed: true,
             ..Default::default()
@@ -119,6 +122,24 @@ fn player_update_holding_fire_respects_existing_cooldown() {
 
     assert_close(updated_player.bullet_fire_cooldown_seconds, 0.01);
     assert_close(updated_player.bullet_repeat_unlock_delay_seconds, 0.0);
+    assert_eq!(bullet_count, 0);
+}
+
+#[test]
+fn player_update_released_fire_does_not_repeat() {
+    let (updated_player, bullet_count) = updated_player_state_and_bullet_count(
+        InputComponent::default(),
+        PlayerComponent {
+            bullet_repeat_unlock_delay_seconds: 0.0,
+            bullet_fire_cooldown_seconds: 0.0,
+            ..Default::default()
+        },
+        0.5,
+    );
+
+    assert_close(updated_player.bullet_fire_cooldown_seconds, 0.0);
+    assert_close(updated_player.bullet_repeat_unlock_delay_seconds, 0.0);
+    assert_eq!(bullet_count, 0);
 }
 
 #[test]
@@ -138,7 +159,7 @@ fn player_update_cooldowns_clamp_to_zero() {
 }
 
 fn updated_player_torque_y(input: InputComponent) -> f32 {
-    let (_, torque) = run_player_update(input, PlayerComponent::default(), 0.0);
+    let (_, torque, _) = run_player_update(input, PlayerComponent::default(), 0.0);
 
     torque.y
 }
@@ -148,16 +169,26 @@ fn updated_player_state(
     player: PlayerComponent,
     delta_secs: f32,
 ) -> PlayerComponent {
-    let (updated_player, _) = run_player_update(input, player, delta_secs);
+    let (updated_player, _, _) = run_player_update(input, player, delta_secs);
 
     updated_player
+}
+
+fn updated_player_state_and_bullet_count(
+    input: InputComponent,
+    player: PlayerComponent,
+    delta_secs: f32,
+) -> (PlayerComponent, usize) {
+    let (updated_player, _, bullet_count) = run_player_update(input, player, delta_secs);
+
+    (updated_player, bullet_count)
 }
 
 fn run_player_update(
     input: InputComponent,
     player: PlayerComponent,
     delta_secs: f32,
-) -> (PlayerComponent, Vec3) {
+) -> (PlayerComponent, Vec3, usize) {
     let mut app = App::new();
     let mut time = Time::<()>::default();
     time.advance_by(Duration::from_secs_f32(delta_secs));
@@ -183,8 +214,9 @@ fn run_player_update(
         .get::<ConstantTorque>()
         .expect("player torque should still exist after update")
         .0;
+    let bullet_count = app.world().resource::<Messages<BulletSpawnMessage>>().len();
 
-    (updated_player, updated_torque)
+    (updated_player, updated_torque, bullet_count)
 }
 
 fn spawn_player(app: &mut App, player: PlayerComponent) -> Entity {

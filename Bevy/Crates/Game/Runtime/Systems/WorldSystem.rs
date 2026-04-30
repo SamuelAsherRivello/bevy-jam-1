@@ -1,5 +1,36 @@
-use avian3d::prelude::{Collider, CollisionEventsEnabled, RigidBody};
-use bevy::{math::primitives::Cuboid, prelude::*, window::PrimaryWindow};
+use bevy::{prelude::*, render::view::NoIndirectDrawing, window::PrimaryWindow};
+
+use crate::{
+    cloud_bundle::CloudBundle, game_scene_resource::GameSceneResource,
+    nuclear_reset_component::NuclearResetComponent, terrain_bundle::TerrainBundle,
+};
+
+const BACKGROUND_CLOUDS: [(&str, Vec3, Vec3, f32, f32, f32); 3] = [
+    (
+        "CloudBundle (01)",
+        Vec3::new(-6.0, 2.0, -10.0),
+        Vec3::new(0.3, 0.3, 0.3),
+        0.22,
+        6.8,
+        0.6,
+    ),
+    (
+        "CloudBundle (02)",
+        Vec3::new(0.5, 2.18, -10.0),
+        Vec3::new(0.65, 0.5, 0.5),
+        0.3,
+        8.3,
+        2.8,
+    ),
+    (
+        "CloudBundle (03)",
+        Vec3::new(7.0, 1.92, -10.0),
+        Vec3::new(1.05, 0.7, 0.7),
+        0.18,
+        7.4,
+        4.3,
+    ),
+];
 
 #[derive(Component)]
 struct CameraComponent {
@@ -17,23 +48,6 @@ impl Default for CameraComponent {
 }
 
 #[derive(Component)]
-struct FloorComponent {
-    color: Color,
-    translation: Vec3,
-    scale: Vec3,
-}
-
-impl Default for FloorComponent {
-    fn default() -> Self {
-        Self {
-            color: Color::srgba(0.18, 0.22, 0.28, 1.0),
-            translation: Vec3::new(0.0, -1.0, 0.0),
-            scale: Vec3::new(20.0, 0.25, 20.0),
-        }
-    }
-}
-
-#[derive(Component)]
 struct LightComponent {
     name: &'static str,
     illuminance: f32,
@@ -44,8 +58,8 @@ struct LightComponent {
 // System handles the setup of the world scene.
 pub fn world_startup_system(
     mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
+    asset_server: Res<AssetServer>,
+    game_scene: Option<Res<GameSceneResource>>,
     primary_window_query: Query<Entity, With<PrimaryWindow>>,
 ) {
     if let Ok(primary_window_entity) = primary_window_query.single() {
@@ -59,8 +73,10 @@ pub fn world_startup_system(
             Name::new("Camera"),
             Transform::default(),
             GlobalTransform::default(),
+            NuclearResetComponent,
         ))
         .id();
+    parent_to_game_scene(&mut commands, &game_scene, camera_parent);
 
     let camera = CameraComponent::default();
     let camera_entity = commands
@@ -68,6 +84,7 @@ pub fn world_startup_system(
             Name::new("Camera3d"),
             Camera3d::default(),
             Msaa::Off,
+            NoIndirectDrawing,
             Transform::from_translation(camera.translation).looking_at(camera.look_at, Vec3::Y),
             camera,
         ))
@@ -79,8 +96,10 @@ pub fn world_startup_system(
             Name::new("Lights"),
             Transform::default(),
             GlobalTransform::default(),
+            NuclearResetComponent,
         ))
         .id();
+    parent_to_game_scene(&mut commands, &game_scene, lights_parent);
 
     let lights = [
         LightComponent {
@@ -119,31 +138,45 @@ pub fn world_startup_system(
         commands.entity(lights_parent).add_child(light_entity);
     }
 
-    let floor = FloorComponent::default();
-    let floor_translation = floor.translation;
-    let floor_collider_size = floor.scale;
-    let cube_mesh = meshes.add(Cuboid::new(1.0, 1.0, 1.0));
-    commands.spawn((
-        Name::new("FloorVisual"),
-        Mesh3d(cube_mesh),
-        MeshMaterial3d(materials.add(StandardMaterial {
-            base_color: floor.color,
-            ..Default::default()
-        })),
-        Transform::from_translation(floor.translation).with_scale(floor.scale),
-        floor,
-    ));
+    let environment_parent = commands
+        .spawn((
+            Name::new("Environment"),
+            Transform::default(),
+            GlobalTransform::default(),
+            NuclearResetComponent,
+        ))
+        .id();
+    parent_to_game_scene(&mut commands, &game_scene, environment_parent);
 
-    commands.spawn((
-        Name::new("Floor"),
-        Transform::from_translation(floor_translation),
-        GlobalTransform::default(),
-        RigidBody::Static,
-        Collider::cuboid(
-            floor_collider_size.x,
-            floor_collider_size.y,
-            floor_collider_size.z,
-        ),
-        CollisionEventsEnabled,
-    ));
+    let terrain_entity = commands.spawn(TerrainBundle::new(&asset_server)).id();
+    commands
+        .entity(environment_parent)
+        .add_child(terrain_entity);
+
+    for (name, translation, scale, y_delta, y_oscillation_seconds, y_offset_seconds) in
+        BACKGROUND_CLOUDS
+    {
+        let cloud_entity = commands
+            .spawn(CloudBundle::new(
+                &asset_server,
+                name,
+                translation,
+                scale,
+                y_delta,
+                y_oscillation_seconds,
+                y_offset_seconds,
+            ))
+            .id();
+        commands.entity(environment_parent).add_child(cloud_entity);
+    }
+}
+
+fn parent_to_game_scene(
+    commands: &mut Commands,
+    game_scene: &Option<Res<GameSceneResource>>,
+    entity: Entity,
+) {
+    if let Some(scene_entity) = game_scene.as_ref().and_then(|scene| scene.entity) {
+        commands.entity(scene_entity).add_child(entity);
+    }
 }

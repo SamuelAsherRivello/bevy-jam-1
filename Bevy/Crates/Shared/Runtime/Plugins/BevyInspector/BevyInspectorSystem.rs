@@ -53,8 +53,8 @@ pub fn bevy_inspector_ui_system(world: &mut World) {
             egui::ScrollArea::both().show(ui, |ui| {
                 let bullet_count = count_named_entities(world, "Bullet");
 
-                ui.heading("World");
-                bevy_inspector::ui_for_entities_filtered(world, ui, false, &NamedEntityFilter);
+                ui.heading("Selected World");
+                bevy_inspector::ui_for_entities_filtered(world, ui, true, &SelectedEntityFilter);
 
                 ui.separator();
                 egui::CollapsingHeader::new(format!("Dynamics ({bullet_count} bullets)"))
@@ -73,18 +73,39 @@ pub fn bevy_inspector_ui_system(world: &mut World) {
         });
 }
 
-struct NamedEntityFilter;
+struct SelectedEntityFilter;
 
-impl EntityFilter for NamedEntityFilter {
-    type StaticFilter = ();
+impl EntityFilter for SelectedEntityFilter {
+    type StaticFilter = Without<ChildOf>;
 
     fn filter_entity(&self, world: &mut World, entity: Entity) -> bool {
-        let Some(name) = world.get::<Name>(entity) else {
-            return false;
-        };
-
-        matches!(name.as_str(), "Camera3d" | "Lights" | "Player" | "Floor")
+        selected_entity_or_descendant(world, entity)
     }
+}
+
+fn selected_entity_or_descendant(world: &World, entity: Entity) -> bool {
+    if selected_entity_root(world, entity) {
+        return true;
+    }
+
+    let mut ancestor = world.get::<ChildOf>(entity).map(|parent| parent.parent());
+    while let Some(parent) = ancestor {
+        if selected_entity_root(world, parent) {
+            return true;
+        }
+
+        ancestor = world.get::<ChildOf>(parent).map(|parent| parent.parent());
+    }
+
+    false
+}
+
+fn selected_entity_root(world: &World, entity: Entity) -> bool {
+    let Some(name) = world.get::<Name>(entity) else {
+        return false;
+    };
+
+    matches!(name.as_str(), "Window" | "Game Scene" | "Bevy Inspector")
 }
 
 struct DynamicsEntityFilter;
