@@ -1,4 +1,7 @@
-use std::fs;
+use std::{
+    fs,
+    path::{Path, PathBuf},
+};
 
 use avian3d::prelude::{
     AngularDamping, AngularVelocity, Collider, ConstantForce, ConstantTorque, GravityScale,
@@ -31,18 +34,15 @@ const BULLET_SPAWN_HEIGHT_OFFSET: f32 = 0.12;
 // Const values used in setup (Not hot reloadable)
 const PLAYER_ANGULAR_DAMPING: f32 = 6.0;
 const PLAYER_BASE_SCALE: f32 = 1.0;
-const PLAYER_COLLIDER_DEPTH: f32 = PLAYER_MESH_DEPTH * PLAYER_BASE_SCALE;
-const PLAYER_COLLIDER_HEIGHT: f32 = PLAYER_MESH_HEIGHT * PLAYER_BASE_SCALE;
-const PLAYER_COLLIDER_WIDTH: f32 = PLAYER_MESH_WIDTH * PLAYER_BASE_SCALE;
 const PLAYER_FALL_RESET_Y: f32 = -5.0;
 const PLAYER_LINEAR_DAMPING: f32 = 0.0;
-const PLAYER_MESH_DEPTH: f32 = 1.0;
-const PLAYER_MESH_HEIGHT: f32 = 1.0;
-const PLAYER_MESH_WIDTH: f32 = 1.0;
-const PLAYER_MODEL_CENTER: Vec3 = Vec3::new(0.0, 0.75, 0.0);
-const PLAYER_MODEL_PATH: &str = "Models/watercrafts/Models/GLB format/boat-speed-a.glb";
-const PLAYER_MODEL_SCALE: f32 = 0.65;
-const PLAYER_START_Y: f32 = 1.0;
+const PLAYER_MODEL_CENTER: Vec3 = Vec3::new(0.0, 3.0, 0.0);
+const PLAYER_MODEL_DEPTH: f32 = 4.523146 * PLAYER_MODEL_SCALE;
+const PLAYER_MODEL_HEIGHT: f32 = 2.5334952 * PLAYER_MODEL_SCALE;
+const PLAYER_MODEL_PATH: &str = "Models/airplane/airplane.glb";
+const PLAYER_MODEL_SCALE: f32 = 0.002;
+const PLAYER_MODEL_WIDTH: f32 = 11.733431 * PLAYER_MODEL_SCALE;
+const PLAYER_START_POSITION: Vec3 = Vec3::ZERO;
 
 struct PlayerModelMeasurement {
     center: Vec3,
@@ -56,7 +56,7 @@ fn reset_player_to_start(
     linear_velocity: &mut LinearVelocity,
     angular_velocity: &mut AngularVelocity,
 ) {
-    transform.translation = Vec3::new(0.0, PLAYER_START_Y, 0.0);
+    transform.translation = PLAYER_START_POSITION;
     transform.rotation = Quat::IDENTITY;
     constant_force.0 = Vec3::ZERO;
     constant_torque.0 = Vec3::ZERO;
@@ -79,13 +79,13 @@ pub fn player_startup_system(world: &mut World) {
     let player_entity = world
         .spawn((
             Name::new("Player"),
-            Transform::from_xyz(0.0, PLAYER_START_Y, 0.0)
+            Transform::from_translation(PLAYER_START_POSITION)
                 .with_scale(Vec3::splat(PLAYER_BASE_SCALE)),
             RigidBody::Dynamic,
             Collider::cuboid(
-                PLAYER_COLLIDER_WIDTH,
-                PLAYER_COLLIDER_HEIGHT,
-                PLAYER_COLLIDER_DEPTH,
+                PLAYER_MODEL_WIDTH * PLAYER_BASE_SCALE,
+                PLAYER_MODEL_HEIGHT * PLAYER_BASE_SCALE,
+                PLAYER_MODEL_DEPTH * PLAYER_BASE_SCALE,
             ),
             GravityScale(1.0),
             LinearDamping(PLAYER_LINEAR_DAMPING),
@@ -136,7 +136,7 @@ pub fn player_visibility_debug_update_system(
                 PLAYER_MODEL_PATH
             );
             info!("{message}");
-            let _ = fs::write("target/player-visibility.txt", format!("{message}\n"));
+            write_player_visibility_debug(&message);
             *has_logged = true;
             return;
         }
@@ -195,7 +195,7 @@ pub fn player_visibility_debug_update_system(
         is_visible
     );
     info!("{message}");
-    let _ = fs::write("target/player-visibility.txt", format!("{message}\n"));
+    write_player_visibility_debug(&message);
 
     *has_logged = true;
 }
@@ -353,4 +353,22 @@ fn camera_frustum_half_size(
     let half_height = depth * (perspective_projection.fov * 0.5).tan();
     let half_width = half_height * aspect_ratio;
     Some((half_width, half_height))
+}
+
+fn write_player_visibility_debug(message: &str) {
+    let output_path = player_visibility_output_path();
+    if let Some(parent) = output_path.parent() {
+        let _ = fs::create_dir_all(parent);
+    }
+
+    let _ = fs::write(output_path, format!("{message}\n"));
+}
+
+fn player_visibility_output_path() -> PathBuf {
+    Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("..")
+        .join("..")
+        .join("..")
+        .join("target")
+        .join("player-visibility.txt")
 }

@@ -66,7 +66,16 @@ dx serve --hot-patch --windows --package game --bin game
 ### Run Tests
 
 ```powershell
-powershell.exe -ExecutionPolicy Bypass -File ./Scripts/Other/RunGameTests.ps1
+powershell.exe -ExecutionPolicy Bypass -File ./Scripts/Other/RunTestsGame.ps1
+```
+
+### Run Model Asset Tests
+
+Use this script when validating `.glb` and `.gltf` files. It uses an isolated
+Cargo target directory and does not stop the active game or hot-reload process.
+
+```powershell
+powershell.exe -ExecutionPolicy Bypass -File ./Scripts/Other/RunModelAssetTests.ps1
 ```
 
 ### Build Only

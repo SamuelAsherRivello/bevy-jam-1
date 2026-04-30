@@ -73,8 +73,9 @@ These steps are required
 | 06 | [`RunGame.ps1`](./Scripts/Other/RunGame.ps1) | Windows | ❌ | Build and run the active game without hot reload. |
 | 07 | [`RunGameWeb.ps1`](./Scripts/Other/RunGameWeb.ps1) | Windows | ❌ | Build and run the game in browser/wasm without hot reload. |
 | 08 | [`RunTestsGame.ps1`](./Scripts/Other/RunTestsGame.ps1) | Windows | ❌ | Run the game test suite. |
-| 09 | [`RunTestsShared.ps1`](./Scripts/Other/RunTestsShared.ps1) | Windows | ❌ | Run shared crate tests. |
-| 10 | [`StopGame.ps1`](./Scripts/Other/StopGame.ps1) | Windows | ❌ | Stop running game processes. |
+| 09 | [`RunModelAssetTests.ps1`](./Scripts/Other/RunModelAssetTests.ps1) | Windows | ❌ | Run model asset validation tests without stopping the active game. |
+| 10 | [`RunTestsShared.ps1`](./Scripts/Other/RunTestsShared.ps1) | Windows | ❌ | Run shared crate tests. |
+| 11 | [`StopGame.ps1`](./Scripts/Other/StopGame.ps1) | Windows | ❌ | Stop running game processes. |
 
 
 ## Structure
@@ -123,7 +124,7 @@ The workspace has 2 active crates: `game` and `shared`.
 | `D` | Turn right | ❌ |
 | `F` | Show or hide FPS | ✅ |
 | `I` | Show or hide Bevy Inspector | ✅ |
-| `P` | Switch bullet physics mode | ✅ |
+| `P` | Show or hide Avian physics debugger | ✅ |
 | `R` | Reset player | ❌ |
 
 ---

@@ -29,7 +29,8 @@ macro_rules! model_asset_test {
     };
 }
 
-model_asset_test!(models_airplane_scene_gltf, "Models/airplane/scene.gltf");
+model_asset_test!(models_airplane_airplane_glb, "Models/airplane/airplane.glb");
+model_asset_test!(models_airplane_old_scene_gltf, "Models/airplane_old/scene.gltf");
 model_asset_test!(
     models_clouds_low_poly_clouds_glb,
     "Models/clouds/LOW-POLY CLOUDS.glb"
@@ -209,6 +210,14 @@ model_asset_test!(
 model_asset_test!(
     models_more_airplanes_models_q400_glb,
     "Models/more_airplanes/models/q400.glb"
+);
+model_asset_test!(
+    models_terrain_dristibute_gn_terrain_dristibute_gn_glb,
+    "Models/terrain_dristibute_gn/terrain_dristibute_gn.glb"
+);
+model_asset_test!(
+    models_terrain_dristibute_gn_terrain_dristibute_gn_bevy_glb,
+    "Models/terrain_dristibute_gn/terrain_dristibute_gn_bevy.glb"
 );
 model_asset_test!(
     models_war_plane_scene_bevy_optimized_glb,

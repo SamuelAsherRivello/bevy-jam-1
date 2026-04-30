@@ -1,3 +1,4 @@
+use avian3d::prelude::PhysicsGizmos;
 use bevy::{
     ecs::system::SystemParam,
     prelude::*,
@@ -13,9 +14,9 @@ use shared::{
 };
 
 use crate::{
-    bullet_component::BulletComponent, bullet_resource::BulletPhysicsModeResource,
-    hud_fps_text_component::HUDFpsTextComponent, hud_key_text_component::HUDKeyTextComponent,
-    hud_resource::HUDTextResource, hud_text_component::HUDTextComponent,
+    bullet_component::BulletComponent, hud_fps_text_component::HUDFpsTextComponent,
+    hud_key_text_component::HUDKeyTextComponent, hud_resource::HUDTextResource,
+    hud_text_component::HUDTextComponent,
 };
 
 const FPS_UPDATE_INTERVAL_SECONDS: f32 = 0.5;
@@ -26,9 +27,9 @@ pub struct HUDUpdateParams<'w, 's> {
     time: Res<'w, Time>,
     context: Res<'w, ContextResource>,
     hud_text: ResMut<'w, HUDTextResource>,
+    gizmo_config_store: ResMut<'w, GizmoConfigStore>,
     bullet_query: Query<'w, 's, (), With<BulletComponent>>,
     inspector_query: Query<'w, 's, &'static BevyInspectorComponent>,
-    bullet_physics_mode: Res<'w, BulletPhysicsModeResource>,
     text_query: Query<'w, 's, &'static mut Text, With<HUDTextComponent>>,
     fps_text_query: Query<'w, 's, &'static mut TextSpan, With<HUDFpsTextComponent>>,
     key_text_query: Query<'w, 's, (&'static HUDKeyTextComponent, &'static mut UnderlineColor)>,
@@ -106,6 +107,11 @@ pub fn hud_update_system(mut params: HUDUpdateParams) {
         params.hud_text.is_fps_visible = !params.hud_text.is_fps_visible;
     }
 
+    if params.keys.just_pressed(KeyCode::KeyP) {
+        let (physics_gizmo_config, _) = params.gizmo_config_store.config_mut::<PhysicsGizmos>();
+        physics_gizmo_config.enabled = !physics_gizmo_config.enabled;
+    }
+
     params.hud_text.fps_accumulated_seconds += params.time.delta_secs();
     params.hud_text.fps_accumulated_frames += 1;
 
@@ -128,14 +134,18 @@ pub fn hud_update_system(mut params: HUDUpdateParams) {
         .single()
         .map(|i| i.is_visible)
         .unwrap_or(false);
-    let physics_on = params.bullet_physics_mode.is_enabled;
+    let physics_debug_on = params
+        .gizmo_config_store
+        .config::<PhysicsGizmos>()
+        .0
+        .enabled;
 
     for (key_text, mut underline_color) in &mut params.key_text_query {
         let is_active = if key_text.is_toggle {
             match key_text.key_code {
                 KeyCode::KeyF => fps_on,
                 KeyCode::KeyI => inspector_on,
-                KeyCode::KeyP => physics_on,
+                KeyCode::KeyP => physics_debug_on,
                 _ => false,
             }
         } else {

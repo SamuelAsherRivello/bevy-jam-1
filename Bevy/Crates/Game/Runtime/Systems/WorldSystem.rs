@@ -3,6 +3,27 @@ use bevy::{
     math::primitives::Cuboid, prelude::*, render::view::NoIndirectDrawing, window::PrimaryWindow,
 };
 
+use crate::cloud_bundle::CloudBundle;
+use crate::terrain_bundle::TerrainBundle;
+
+const BACKGROUND_CLOUDS: [(&str, Vec3, Vec3); 3] = [
+    (
+        "Background Cloud 1",
+        Vec3::new(3.75, 6.5, -6.75),
+        Vec3::new(0.3, 0.3, 0.3),
+    ),
+    (
+        "Background Cloud 2",
+        Vec3::new(6.7, 8.0, -12.0),
+        Vec3::new(0.65, 0.5, 0.5),
+    ),
+    (
+        "Background Cloud 3",
+        Vec3::new(9.6, 9.5, -17.25),
+        Vec3::new(1.05, 0.7, 0.7),
+    ),
+];
+
 #[derive(Component)]
 struct CameraComponent {
     translation: Vec3,
@@ -29,7 +50,7 @@ impl Default for FloorComponent {
     fn default() -> Self {
         Self {
             color: Color::srgba(0.18, 0.22, 0.28, 1.0),
-            translation: Vec3::new(0.0, -1.0, 0.0),
+            translation: Vec3::new(0.0, 0.1, 0.0),
             scale: Vec3::new(20.0, 0.25, 20.0),
         }
     }
@@ -46,6 +67,7 @@ struct LightComponent {
 // System handles the setup of the world scene.
 pub fn world_startup_system(
     mut commands: Commands,
+    asset_server: Res<AssetServer>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     primary_window_query: Query<Entity, With<PrimaryWindow>>,
@@ -149,4 +171,10 @@ pub fn world_startup_system(
         ),
         CollisionEventsEnabled,
     ));
+
+    //commands.spawn(TerrainBundle::new(&asset_server));
+
+    for (name, translation, scale) in BACKGROUND_CLOUDS {
+        commands.spawn(CloudBundle::new(&asset_server, name, translation, scale));
+    }
 }

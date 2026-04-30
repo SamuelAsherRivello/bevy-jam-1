@@ -1,4 +1,4 @@
-use avian3d::prelude::{Gravity, PhysicsPlugins};
+use avian3d::prelude::{Gravity, PhysicsDebugPlugin, PhysicsGizmos, PhysicsPlugins};
 use bevy::prelude::*;
 use bevy_simple_subsecond_system as hot_reload;
 use bevy_tweening::TweeningPlugin;
@@ -27,6 +27,8 @@ pub(crate) mod bullet_resource;
 pub(crate) mod bullet_shader;
 #[path = "Systems/BulletSystem.rs"]
 pub(crate) mod bullet_system;
+#[path = "Bundles/CloudBundle.rs"]
+pub(crate) mod cloud_bundle;
 #[path = "Components/HUDFpsTextComponent.rs"]
 pub(crate) mod hud_fps_text_component;
 #[path = "Components/HUDKeyTextComponent.rs"]
@@ -53,6 +55,8 @@ pub(crate) mod player_component;
 pub(crate) mod player_plugin;
 #[path = "Systems/PlayerSystem.rs"]
 pub(crate) mod player_system;
+#[path = "Bundles/TerrainBundle.rs"]
+pub(crate) mod terrain_bundle;
 #[path = "Plugins/WorldPlugin.rs"]
 pub(crate) mod world_plugin;
 #[path = "Systems/WorldSystem.rs"]
@@ -98,6 +102,18 @@ fn main() {
 
     // Plugin handles Avian physics.
     app.add_plugins(PhysicsPlugins::default());
+    app.add_plugins(PhysicsDebugPlugin);
+    app.insert_gizmo_config(
+        PhysicsGizmos::default(),
+        GizmoConfig {
+            enabled: false,
+            line: GizmoLineConfig {
+                width: 3.0,
+                ..default()
+            },
+            ..default()
+        },
+    );
     app.insert_resource(Gravity(Vec3::new(0.0, -9.81, 0.0)));
 
     // Plugin handles tween animations.

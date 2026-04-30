@@ -8,8 +8,3 @@ pub struct BulletMeshResource(pub Handle<Mesh>);
 
 #[derive(Resource)]
 pub struct BulletMaterialResource(pub Handle<StandardMaterial>);
-
-#[derive(Default, Resource)]
-pub struct BulletPhysicsModeResource {
-    pub is_enabled: bool,
-}

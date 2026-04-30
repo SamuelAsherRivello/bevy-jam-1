@@ -1,6 +1,6 @@
 # Model Asset Test Results
 
-Last run: `2026-04-30 14:28:01 -03:00`
+Last run: `2026-04-30 15:02:15 -03:00`
 
 This report records which imported model assets Bevy can load and measure through
 `ModelAssetTests.rs`. A model is counted as compatible when Bevy loads the asset
@@ -14,9 +14,10 @@ and exposes nonzero mesh bounds.
 | Clouds | 1 | 1 | 0 | The low-poly cloud GLB loads. |
 | Flying Island | 3 | 0 | 3 | The GLBs load too slowly or never expose measurable meshes in the test window. |
 | More Airplanes | 41 | 0 | 41 | All assets in this set require conversion or repair before use. |
+| Terrain Dristibute GN | 2 | 1 | 1 | Converted Bevy variant loads; source GLB still requires conversion. |
 | War Plane | 4 | 2 | 2 | The Bevy and metal/roughness variants load. |
 | Watercrafts | 46 | 46 | 0 | All tested GLB assets load. |
-| **Total** | **96** | **50** | **46** | **Use compatible assets directly; fix or replace incompatible assets.** |
+| **Total** | **98** | **51** | **47** | **Use compatible assets directly; fix or replace incompatible assets.** |
 
 ## Compatible Assets
 
@@ -26,13 +27,19 @@ These assets loaded successfully and exposed measurable mesh bounds.
 
 | Asset | Result |
 |---|---|
-| [`Models/airplane/scene.gltf`](../Assets/Models/airplane/scene.gltf) | Loaded with measurable mesh bounds. |
+| [`Models/airplane/airplane.glb`](../Assets/Models/airplane/airplane.glb) | Loaded with measurable mesh bounds. |
 
 ### Clouds
 
 | Asset | Result |
 |---|---|
 | [`Models/clouds/LOW-POLY CLOUDS.glb`](../Assets/Models/clouds/LOW-POLY%20CLOUDS.glb) | Loaded with measurable mesh bounds. |
+
+### Terrain Dristibute GN
+
+| Asset | Result |
+|---|---|
+| [`Models/terrain_dristibute_gn/terrain_dristibute_gn_bevy.glb`](../Assets/Models/terrain_dristibute_gn/terrain_dristibute_gn_bevy.glb) | Loaded with measurable mesh bounds. |
 
 ### War Plane
 
@@ -129,6 +136,12 @@ Bevy rejected these glTF files from `Models/more_airplanes/models/` with:
 | [`Models/war_plane/scene_bevy_optimized.glb`](../Assets/Models/war_plane/scene_bevy_optimized.glb) | Missing data for `accessors[0].bufferView`. |
 | [`Models/war_plane/scene.gltf`](../Assets/Models/war_plane/scene.gltf) | Requires unsupported `KHR_materials_pbrSpecularGlossiness`. |
 
+### Terrain Dristibute GN Requiring Fixes
+
+| Asset | Result |
+|---|---|
+| [`Models/terrain_dristibute_gn/terrain_dristibute_gn.glb`](../Assets/Models/terrain_dristibute_gn/terrain_dristibute_gn.glb) | Requires unsupported `KHR_materials_pbrSpecularGlossiness`. |
+
 ### Flying Island GLBs Without Measurable Meshes
 
 These GLBs did not load and expose measurable meshes within `600` frames.
@@ -141,8 +154,10 @@ These GLBs did not load and expose measurable meshes within `600` frames.
 
 ## Recommendation
 
-Use `Models/airplane/scene.gltf`, `Models/clouds/LOW-POLY CLOUDS.glb`, the
-compatible war plane variants, and the watercraft GLB set as-is. Treat the
-`more_airplanes` set as source material only; those files need a current
-glTF/GLB re-export before they are suitable for Bevy. Re-export or inspect the
-flying-island GLBs before relying on them in a scene.
+Use `Models/airplane/airplane.glb`, `Models/clouds/LOW-POLY CLOUDS.glb`,
+`Models/terrain_dristibute_gn/terrain_dristibute_gn_bevy.glb`, the compatible
+war plane variants, and the watercraft GLB set as-is. Treat the `more_airplanes`
+set as source material only; those files need a current glTF/GLB re-export
+before they are suitable for Bevy. Re-export or inspect the flying-island GLBs
+and source `Models/terrain_dristibute_gn/terrain_dristibute_gn.glb` before
+relying on them in a scene.

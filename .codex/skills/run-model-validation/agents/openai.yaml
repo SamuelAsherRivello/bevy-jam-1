@@ -1,0 +1,4 @@
+interface:
+  display_name: "Run Model Validation"
+  short_description: "Validate Bevy model folders"
+  default_prompt: "Add these model folder(s) to ModelAssetTests and update the validation report."

@@ -83,7 +83,17 @@ impl EntityFilter for NamedEntityFilter {
             return false;
         };
 
-        matches!(name.as_str(), "Camera3d" | "Lights" | "Player" | "Floor")
+        matches!(
+            name.as_str(),
+            "Camera3d"
+                | "Lights"
+                | "Player"
+                | "Floor"
+                | "Terrain"
+                | "Background Cloud 1"
+                | "Background Cloud 2"
+                | "Background Cloud 3"
+        )
     }
 }
 
