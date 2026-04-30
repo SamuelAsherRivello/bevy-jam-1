@@ -5,6 +5,7 @@ use bevy::{
 
 pub const TARGET_RESOLUTION: UVec2 = UVec2::new(960, 540);
 pub const TARGET_ASPECT_RATIO: f32 = 16.0 / 9.0;
+pub const MIN_VISIBLE_WINDOW_PIXELS: u32 = 64;
 
 #[derive(Resource)]
 pub struct CustomWindowResource {

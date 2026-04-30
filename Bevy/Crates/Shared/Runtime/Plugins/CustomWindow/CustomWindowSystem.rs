@@ -1,13 +1,16 @@
 use std::{fs, path::Path};
 
 use bevy::{
-    math::IVec2,
+    math::{IVec2, UVec2},
     prelude::*,
-    window::{PrimaryWindow, WindowCloseRequested, WindowMoved, WindowResized},
+    window::{
+        Monitor, PrimaryWindow, WindowCloseRequested, WindowMoved, WindowPosition, WindowResized,
+    },
 };
 
 use crate::{
-    custom_window_component::CustomWindowComponent, custom_window_resource::CustomWindowResource,
+    custom_window_component::CustomWindowComponent,
+    custom_window_resource::{CustomWindowResource, MIN_VISIBLE_WINDOW_PIXELS},
 };
 
 const PRIMARY_WINDOW_POSITION_PATH: &str = "target/window-state/primary-window-position.txt";
@@ -20,8 +23,38 @@ pub fn load_custom_window_position() -> Option<IVec2> {
     let mut parts = contents.trim().split(',');
     let x = parts.next()?.trim().parse::<i32>().ok()?;
     let y = parts.next()?.trim().parse::<i32>().ok()?;
+    if parts.next().is_some() {
+        return None;
+    }
 
     Some(IVec2::new(x, y))
+}
+
+pub fn is_custom_window_position_visible<'a>(
+    position: IVec2,
+    window_size: UVec2,
+    monitors: impl IntoIterator<Item = &'a Monitor>,
+) -> bool {
+    let window_width = i64::from(window_size.x.max(1));
+    let window_height = i64::from(window_size.y.max(1));
+    let window_min_x = i64::from(position.x);
+    let window_min_y = i64::from(position.y);
+    let window_max_x = window_min_x + window_width;
+    let window_max_y = window_min_y + window_height;
+    let required_width = i64::from(window_size.x.min(MIN_VISIBLE_WINDOW_PIXELS).max(1));
+    let required_height = i64::from(window_size.y.min(MIN_VISIBLE_WINDOW_PIXELS).max(1));
+
+    monitors.into_iter().any(|monitor| {
+        let monitor_min_x = i64::from(monitor.physical_position.x);
+        let monitor_min_y = i64::from(monitor.physical_position.y);
+        let monitor_max_x = monitor_min_x + i64::from(monitor.physical_width);
+        let monitor_max_y = monitor_min_y + i64::from(monitor.physical_height);
+
+        let visible_width = window_max_x.min(monitor_max_x) - window_min_x.max(monitor_min_x);
+        let visible_height = window_max_y.min(monitor_max_y) - window_min_y.max(monitor_min_y);
+
+        visible_width >= required_width && visible_height >= required_height
+    })
 }
 
 pub fn custom_window_startup_system(
@@ -36,6 +69,46 @@ pub fn custom_window_startup_system(
             .entity(primary_window_entity)
             .insert(CustomWindowComponent);
     }
+}
+
+pub fn custom_window_restore_position_update_system(
+    mut primary_window_query: Query<
+        &mut Window,
+        (With<PrimaryWindow>, With<CustomWindowComponent>),
+    >,
+    monitors: Query<&Monitor>,
+    mut custom_window_resource: ResMut<CustomWindowResource>,
+    mut restore_completed: Local<bool>,
+) {
+    if *restore_completed {
+        return;
+    }
+
+    let Some(position) = custom_window_resource.primary_window_position else {
+        *restore_completed = true;
+        return;
+    };
+
+    if monitors.is_empty() {
+        return;
+    }
+
+    let Ok(mut primary_window) = primary_window_query.single_mut() else {
+        return;
+    };
+
+    if is_custom_window_position_visible(
+        position,
+        custom_window_resource.target_resolution,
+        monitors.iter(),
+    ) {
+        primary_window.position = WindowPosition::At(position);
+    } else {
+        custom_window_resource.primary_window_position = None;
+        clear_custom_window_position();
+    }
+
+    *restore_completed = true;
 }
 
 pub fn custom_window_track_update_system(
@@ -135,4 +208,8 @@ fn save_custom_window_position(position: IVec2) {
         PRIMARY_WINDOW_POSITION_PATH,
         format!("{},{}\n", position.x, position.y),
     );
+}
+
+fn clear_custom_window_position() {
+    let _ = fs::remove_file(PRIMARY_WINDOW_POSITION_PATH);
 }
