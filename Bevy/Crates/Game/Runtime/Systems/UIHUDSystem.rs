@@ -15,30 +15,35 @@ use shared::{
 
 use crate::{
     bullet_component::BulletComponent, game_scene_resource::GameSceneResource,
-    hud_fps_text_component::HUDFpsTextComponent, hud_key_text_component::HUDKeyTextComponent,
-    hud_resource::HUDTextResource, hud_text_component::HUDTextComponent,
-    nuclear_reset_component::NuclearResetComponent,
+    input_component::InputComponent, reset_game_component::ResetGameComponent,
+    ui_hud_fps_text_component::UIHUDFpsTextComponent,
+    ui_hud_key_text_component::UIHUDKeyTextComponent, ui_hud_resource::UIHUDTextResource,
+    ui_hud_text_component::UIHUDTextComponent,
+    ui_mini_map_viewport_resource::UIMiniMapViewportResource, ui_toast_system::UIToastSpawnMessage,
 };
 
 const FPS_UPDATE_INTERVAL_SECONDS: f32 = 0.5;
 
 #[derive(SystemParam)]
-pub struct HUDUpdateParams<'w, 's> {
+pub struct UIHUDUpdateParams<'w, 's> {
     keys: Res<'w, ButtonInput<KeyCode>>,
     time: Res<'w, Time>,
     context: Res<'w, ContextResource>,
-    hud_text: ResMut<'w, HUDTextResource>,
+    ui_hud_text: ResMut<'w, UIHUDTextResource>,
+    ui_mini_map_viewport: Res<'w, UIMiniMapViewportResource>,
     gizmo_config_store: ResMut<'w, GizmoConfigStore>,
+    toast_messages: MessageWriter<'w, UIToastSpawnMessage>,
     bullet_query: Query<'w, 's, (), With<BulletComponent>>,
+    input_query: Query<'w, 's, &'static InputComponent>,
     inspector_query: Query<'w, 's, &'static BevyInspectorComponent>,
-    text_query: Query<'w, 's, &'static mut Text, With<HUDTextComponent>>,
-    fps_text_query: Query<'w, 's, &'static mut TextSpan, With<HUDFpsTextComponent>>,
-    key_text_query: Query<'w, 's, (&'static HUDKeyTextComponent, &'static mut UnderlineColor)>,
+    text_query: Query<'w, 's, &'static mut Text, With<UIHUDTextComponent>>,
+    fps_text_query: Query<'w, 's, &'static mut TextSpan, With<UIHUDFpsTextComponent>>,
+    key_text_query: Query<'w, 's, (&'static UIHUDKeyTextComponent, &'static mut UnderlineColor)>,
 }
 
-// System handles the setup of the HUD text.
-pub fn hud_startup_system(mut commands: Commands, game_scene: Option<Res<GameSceneResource>>) {
-    let hud_entity = commands
+// System handles the setup of the UIHUD text.
+pub fn ui_hud_startup_system(mut commands: Commands, game_scene: Option<Res<GameSceneResource>>) {
+    let ui_hud_entity = commands
         .spawn((
             Text::new("Waiting for game UI..."),
             TextFont {
@@ -55,8 +60,8 @@ pub fn hud_startup_system(mut commands: Commands, game_scene: Option<Res<GameSce
                 ..Default::default()
             },
             BackgroundColor(Color::srgba(0.02, 0.02, 0.02, 0.72)),
-            HUDTextComponent,
-            NuclearResetComponent,
+            UIHUDTextComponent,
+            ResetGameComponent,
         ))
         .with_children(|parent| {
             spawn_key_span(parent, "W", KeyCode::KeyW, false);
@@ -64,27 +69,27 @@ pub fn hud_startup_system(mut commands: Commands, game_scene: Option<Res<GameSce
             spawn_key_span(parent, "S", KeyCode::KeyS, false);
             spawn_key_span(parent, "D", KeyCode::KeyD, false);
             parent.spawn(TextSpan::new(" : "));
+            spawn_key_span(parent, "P", KeyCode::KeyP, true);
+            parent.spawn(TextSpan::new(" "));
             spawn_key_span(parent, "F", KeyCode::KeyF, true);
             parent.spawn(TextSpan::new(" "));
             spawn_key_span(parent, "I", KeyCode::KeyI, true);
             parent.spawn(TextSpan::new(" "));
-            spawn_key_span(parent, "P", KeyCode::KeyP, true);
+            spawn_key_span(parent, "O", KeyCode::KeyO, true);
             parent.spawn(TextSpan::new(" "));
             spawn_key_span(parent, "R", KeyCode::KeyR, false);
-            parent.spawn(TextSpan::new(" "));
-            spawn_key_span(parent, "N", KeyCode::KeyN, false);
-            parent.spawn((TextSpan::new(""), HUDFpsTextComponent));
+            parent.spawn((TextSpan::new(""), UIHUDFpsTextComponent));
         })
         .id();
 
     if let Some(scene_entity) = game_scene.as_ref().and_then(|scene| scene.entity) {
-        commands.entity(scene_entity).add_child(hud_entity);
+        commands.entity(scene_entity).add_child(ui_hud_entity);
     }
 }
 
 #[hot]
-// System handles the scaling of the HUD text.
-pub fn hud_scale_update_system(
+// System handles the scaling of the UIHUD text.
+pub fn ui_hud_scale_update_system(
     mut window_resized_events: MessageReader<WindowResized>,
     primary_window_query: Query<(Entity, &Window), With<PrimaryWindow>>,
     mut ui_scale: ResMut<UiScale>,
@@ -110,34 +115,45 @@ pub fn hud_scale_update_system(
 }
 
 #[hot]
-// System handles the content update of the HUD text.
-pub fn hud_update_system(mut params: HUDUpdateParams) {
+// System handles the content update of the UIHUD text.
+pub fn ui_hud_update_system(mut params: UIHUDUpdateParams) {
     if params.keys.just_pressed(KeyCode::KeyF) {
-        params.hud_text.is_fps_visible = !params.hud_text.is_fps_visible;
+        params.ui_hud_text.is_fps_visible = !params.ui_hud_text.is_fps_visible;
+        write_toggle_toast(
+            &mut params.toast_messages,
+            "FPS",
+            params.ui_hud_text.is_fps_visible,
+        );
     }
 
-    if params.keys.just_pressed(KeyCode::KeyP) {
+    if params.keys.just_pressed(KeyCode::KeyO) {
         let (physics_gizmo_config, _) = params.gizmo_config_store.config_mut::<PhysicsGizmos>();
         physics_gizmo_config.enabled = !physics_gizmo_config.enabled;
+        write_toggle_toast(
+            &mut params.toast_messages,
+            "DebugDraw",
+            physics_gizmo_config.enabled,
+        );
     }
 
-    params.hud_text.fps_accumulated_seconds += params.time.delta_secs();
-    params.hud_text.fps_accumulated_frames += 1;
+    params.ui_hud_text.fps_accumulated_seconds += params.time.delta_secs();
+    params.ui_hud_text.fps_accumulated_frames += 1;
 
-    if params.hud_text.fps_accumulated_seconds >= FPS_UPDATE_INTERVAL_SECONDS {
-        params.hud_text.fps_display_value = if params.hud_text.fps_accumulated_seconds > 0.0 {
-            params.hud_text.fps_accumulated_frames as f32 / params.hud_text.fps_accumulated_seconds
+    if params.ui_hud_text.fps_accumulated_seconds >= FPS_UPDATE_INTERVAL_SECONDS {
+        params.ui_hud_text.fps_display_value = if params.ui_hud_text.fps_accumulated_seconds > 0.0 {
+            params.ui_hud_text.fps_accumulated_frames as f32
+                / params.ui_hud_text.fps_accumulated_seconds
         } else {
             0.0
         };
 
-        params.hud_text.fps_accumulated_seconds = 0.0;
-        params.hud_text.fps_accumulated_frames = 0;
+        params.ui_hud_text.fps_accumulated_seconds = 0.0;
+        params.ui_hud_text.fps_accumulated_frames = 0;
     }
 
     let bullet_count = params.bullet_query.iter().count();
 
-    let fps_on = params.hud_text.is_fps_visible;
+    let fps_on = params.ui_hud_text.is_fps_visible;
     let inspector_on = params
         .inspector_query
         .single()
@@ -148,13 +164,29 @@ pub fn hud_update_system(mut params: HUDUpdateParams) {
         .config::<PhysicsGizmos>()
         .0
         .enabled;
+    let autopilot_on = params
+        .input_query
+        .single()
+        .map(|input| input.is_autopilot_enabled)
+        .unwrap_or(false);
+
+    if params.keys.just_pressed(KeyCode::KeyP) {
+        write_toggle_toast(&mut params.toast_messages, "Autopilot", autopilot_on);
+    }
+    if params.keys.just_pressed(KeyCode::KeyI) {
+        write_toggle_toast(&mut params.toast_messages, "Inspector", inspector_on);
+    }
+    if params.keys.just_pressed(KeyCode::KeyR) {
+        write_action_toast(&mut params.toast_messages, "ResetGame");
+    }
 
     for (key_text, mut underline_color) in &mut params.key_text_query {
         let is_active = if key_text.is_toggle {
             match key_text.key_code {
                 KeyCode::KeyF => fps_on,
+                KeyCode::KeyP => autopilot_on,
                 KeyCode::KeyI => inspector_on,
-                KeyCode::KeyP => physics_debug_on,
+                KeyCode::KeyO => physics_debug_on || params.ui_mini_map_viewport.is_visible,
                 _ => false,
             }
         } else {
@@ -168,8 +200,8 @@ pub fn hud_update_system(mut params: HUDUpdateParams) {
         };
     }
 
-    let fps_line = if params.hud_text.is_fps_visible {
-        format!("\nFPS: {:.1}", params.hud_text.fps_display_value)
+    let fps_line = if params.ui_hud_text.is_fps_visible {
+        format!("\nFPS: {:.1}", params.ui_hud_text.fps_display_value)
     } else {
         String::new()
     };
@@ -198,6 +230,26 @@ fn spawn_key_span(
         TextSpan::new(text),
         Underline,
         UnderlineColor(Color::srgba(1.0, 1.0, 1.0, 0.0)),
-        HUDKeyTextComponent::new(key_code, is_toggle),
+        UIHUDKeyTextComponent::new(key_code, is_toggle),
     ));
+}
+
+fn write_toggle_toast(
+    toast_messages: &mut MessageWriter<UIToastSpawnMessage>,
+    label: &'static str,
+    is_enabled: bool,
+) {
+    let state = if is_enabled { "On" } else { "Off" };
+    toast_messages.write(UIToastSpawnMessage {
+        text: format!("{label} {state}"),
+    });
+}
+
+fn write_action_toast(
+    toast_messages: &mut MessageWriter<UIToastSpawnMessage>,
+    label: &'static str,
+) {
+    toast_messages.write(UIToastSpawnMessage {
+        text: label.to_owned(),
+    });
 }

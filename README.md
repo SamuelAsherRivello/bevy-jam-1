@@ -118,14 +118,15 @@ The workspace has 2 active crates: `game` and `shared`.
 
 | Key | Use | Toggle? |
 | --- | --- | --- |
-| `W` | Thrust forward | ❌ |
-| `A` | Turn left | ❌ |
-| `S` | Shoot | ❌ |
-| `D` | Turn right | ❌ |
+| `W` / `↑` | Shoot | ❌ |
+| `A` / `←` | Lateral thrust left | ❌ |
+| `S` | Brake | ❌ |
+| `D` / `→` | Lateral thrust right | ❌ |
+| `P` | Autopilot | ✅ |
 | `F` | Show or hide FPS | ✅ |
 | `I` | Show or hide Bevy Inspector | ✅ |
-| `P` | Show or hide Avian physics debugger | ✅ |
-| `R` | Reset player | ❌ |
+| `O` | DebugDraw | ✅ |
+| `R` | ResetGame | ❌ |
 
 ---
 

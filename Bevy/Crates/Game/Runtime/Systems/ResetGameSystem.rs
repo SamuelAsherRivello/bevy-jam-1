@@ -3,24 +3,30 @@ use bevy::{ecs::system::RunSystemOnce, prelude::*};
 use crate::{
     bullet_resource::{BulletMaterialResource, BulletMeshResource, BulletSpawnSoundResource},
     bullet_system::bullet_startup_system,
+    enemy_system::enemy_startup_system,
     game_scene_component::GameSceneComponent,
     game_scene_resource::GameSceneResource,
     game_scene_system::spawn_game_scene,
-    hud_resource::HUDTextResource,
-    hud_system::hud_startup_system,
+    input_component::InputComponent,
     input_resource::InputClickSoundResource,
     input_system::input_startup_system,
     player_system::player_startup_system,
+    ui_hud_resource::UIHUDTextResource,
+    ui_hud_system::ui_hud_startup_system,
     world_system::world_startup_system,
 };
 
-// System handles the in-window reset of game-owned content.
-pub fn nuclear_reset_update_system(world: &mut World) {
-    let Some(keys) = world.get_resource::<ButtonInput<KeyCode>>() else {
-        return;
+// System handles the in-window ResetGame rebuild of game-owned content.
+pub fn reset_game_update_system(world: &mut World) {
+    let should_reset_game = {
+        let mut input_query = world.query::<&InputComponent>();
+        input_query
+            .iter(world)
+            .next()
+            .is_some_and(|input| input.is_reset_game_just_pressed)
     };
 
-    if !keys.just_pressed(KeyCode::KeyN) {
+    if !should_reset_game {
         return;
     }
 
@@ -34,16 +40,21 @@ pub fn nuclear_reset_update_system(world: &mut World) {
     }
     world.resource_mut::<GameSceneResource>().entity = None;
 
-    world.insert_resource(HUDTextResource::default());
+    world.insert_resource(UIHUDTextResource::default());
     world.remove_resource::<BulletSpawnSoundResource>();
     world.remove_resource::<BulletMeshResource>();
     world.remove_resource::<BulletMaterialResource>();
     world.remove_resource::<InputClickSoundResource>();
 
     spawn_game_scene(world);
-    let _ = world.run_system_once(hud_startup_system);
+    let _ = world.run_system_once(ui_hud_startup_system);
     let _ = world.run_system_once(world_startup_system);
     let _ = world.run_system_once(input_startup_system);
+    let mut input_query = world.query::<&mut InputComponent>();
+    for mut input in input_query.iter_mut(world) {
+        input.require_player_input_release();
+    }
     player_startup_system(world);
+    enemy_startup_system(world);
     let _ = world.run_system_once(bullet_startup_system);
 }

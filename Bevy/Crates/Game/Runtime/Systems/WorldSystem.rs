@@ -1,51 +1,20 @@
-use bevy::{prelude::*, render::view::NoIndirectDrawing, window::PrimaryWindow};
-
-use crate::{
-    cloud_bundle::CloudBundle, game_scene_resource::GameSceneResource,
-    nuclear_reset_component::NuclearResetComponent, terrain_bundle::TerrainBundle,
+use bevy::{
+    camera::{ClearColorConfig, visibility::RenderLayers},
+    prelude::*,
+    render::view::NoIndirectDrawing,
+    ui::IsDefaultUiCamera,
+    window::PrimaryWindow,
 };
 
-const BACKGROUND_CLOUDS: [(&str, Vec3, Vec3, f32, f32, f32); 3] = [
-    (
-        "CloudBundle (01)",
-        Vec3::new(-6.0, 2.0, -10.0),
-        Vec3::new(0.3, 0.3, 0.3),
-        0.22,
-        6.8,
-        0.6,
-    ),
-    (
-        "CloudBundle (02)",
-        Vec3::new(0.5, 2.18, -10.0),
-        Vec3::new(0.65, 0.5, 0.5),
-        0.3,
-        8.3,
-        2.8,
-    ),
-    (
-        "CloudBundle (03)",
-        Vec3::new(7.0, 1.92, -10.0),
-        Vec3::new(1.05, 0.7, 0.7),
-        0.18,
-        7.4,
-        4.3,
-    ),
-];
+use crate::{
+    camera_advanced_component::CameraAdvancedComponent, cloud_bundle_spawner::CloudBundleSpawner,
+    game_scene_resource::GameSceneResource, reset_game_component::ResetGameComponent,
+    terrain_grid_bundle::TerrainGridBundle,
+};
 
-#[derive(Component)]
-struct CameraComponent {
-    translation: Vec3,
-    look_at: Vec3,
-}
-
-impl Default for CameraComponent {
-    fn default() -> Self {
-        Self {
-            translation: Vec3::new(-5.0, 4.5, 9.0),
-            look_at: Vec3::new(0.0, 1.0, 0.0),
-        }
-    }
-}
+pub(crate) const WORLD_CAMERA_ORDER: isize = 0;
+pub(crate) const WORLD_DEBUG_VIEWPORT_CAMERA_ORDER: isize = 1;
+pub(crate) const DEBUG_VIEWPORT_RENDER_LAYER: usize = 1;
 
 #[derive(Component)]
 struct LightComponent {
@@ -73,30 +42,74 @@ pub fn world_startup_system(
             Name::new("Camera"),
             Transform::default(),
             GlobalTransform::default(),
-            NuclearResetComponent,
+            ResetGameComponent,
         ))
         .id();
     parent_to_game_scene(&mut commands, &game_scene, camera_parent);
 
-    let camera = CameraComponent::default();
+    let camera = CameraAdvancedComponent {
+        constrain_rotation_x: true,
+        constrain_rotation_y: true,
+        constrain_rotation_z: true,
+        ..CameraAdvancedComponent::default()
+    };
+    let camera_translation = camera.follow_offset;
+    let camera_look_at = camera.look_at_offset;
     let camera_entity = commands
         .spawn((
             Name::new("Camera3d"),
             Camera3d::default(),
+            IsDefaultUiCamera,
+            Camera {
+                order: WORLD_CAMERA_ORDER,
+                ..Default::default()
+            },
+            Projection::from(PerspectiveProjection {
+                fov: camera.field_of_view_radians,
+                near: camera.near_clip,
+                far: camera.far_clip,
+                ..PerspectiveProjection::default()
+            }),
             Msaa::Off,
             NoIndirectDrawing,
-            Transform::from_translation(camera.translation).looking_at(camera.look_at, Vec3::Y),
+            Transform::from_translation(camera_translation).looking_at(camera_look_at, Vec3::Y),
             camera,
         ))
         .id();
     commands.entity(camera_parent).add_child(camera_entity);
+
+    let debug_viewport_camera_entity = commands
+        .spawn((
+            Name::new("Debug Viewport Camera3d"),
+            Camera3d::default(),
+            Camera {
+                order: WORLD_DEBUG_VIEWPORT_CAMERA_ORDER,
+                clear_color: ClearColorConfig::None,
+                ..Default::default()
+            },
+            Projection::from(PerspectiveProjection {
+                fov: camera.field_of_view_radians,
+                near: camera.near_clip,
+                far: camera.far_clip,
+                ..PerspectiveProjection::default()
+            }),
+            Msaa::Off,
+            NoIndirectDrawing,
+            RenderLayers::layer(DEBUG_VIEWPORT_RENDER_LAYER),
+            Transform::from_translation(camera_translation).looking_at(camera_look_at, Vec3::Y),
+            camera,
+        ))
+        .id();
+    commands
+        .entity(camera_parent)
+        .add_child(debug_viewport_camera_entity);
 
     let lights_parent = commands
         .spawn((
             Name::new("Lights"),
             Transform::default(),
             GlobalTransform::default(),
-            NuclearResetComponent,
+            ResetGameComponent,
         ))
         .id();
     parent_to_game_scene(&mut commands, &game_scene, lights_parent);
@@ -143,32 +156,18 @@ pub fn world_startup_system(
             Name::new("Environment"),
             Transform::default(),
             GlobalTransform::default(),
-            NuclearResetComponent,
+            ResetGameComponent,
         ))
         .id();
     parent_to_game_scene(&mut commands, &game_scene, environment_parent);
 
-    let terrain_entity = commands.spawn(TerrainBundle::new(&asset_server)).id();
+    let terrain_grid_entity =
+        TerrainGridBundle::spawn(&mut commands, asset_server.as_ref(), Vec3::ZERO, 10, 10);
     commands
         .entity(environment_parent)
-        .add_child(terrain_entity);
+        .add_child(terrain_grid_entity);
 
-    for (name, translation, scale, y_delta, y_oscillation_seconds, y_offset_seconds) in
-        BACKGROUND_CLOUDS
-    {
-        let cloud_entity = commands
-            .spawn(CloudBundle::new(
-                &asset_server,
-                name,
-                translation,
-                scale,
-                y_delta,
-                y_oscillation_seconds,
-                y_offset_seconds,
-            ))
-            .id();
-        commands.entity(environment_parent).add_child(cloud_entity);
-    }
+    CloudBundleSpawner::spawn(&mut commands, asset_server.as_ref(), environment_parent);
 }
 
 fn parent_to_game_scene(
