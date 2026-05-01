@@ -15,17 +15,17 @@ use crate::{
     world_system::world_startup_system,
 };
 
-// System handles the fixed-step in-window ResetGame rebuild of game-owned content.
-pub fn reset_game_fixed_update_system(world: &mut World) {
-    let should_reset_game = {
+// System handles the fixed-step in-window GameReset rebuild of game-owned content.
+pub fn game_reset_fixed_update_system(world: &mut World) {
+    let should_game_reset = {
         let mut input_query = world.query::<&InputComponent>();
         input_query
             .iter(world)
             .next()
-            .is_some_and(|input| input.is_reset_game_just_pressed)
+            .is_some_and(|input| input.is_game_reset_just_pressed)
     };
 
-    if !should_reset_game {
+    if !should_game_reset {
         return;
     }
 

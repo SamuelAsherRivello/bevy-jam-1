@@ -14,8 +14,8 @@ use shared::{
 };
 
 use crate::{
-    bullet_component::BulletComponent, game_scene_resource::GameSceneResource,
-    input_component::InputComponent, reset_game_component::ResetGameComponent,
+    bullet_component::BulletComponent, game_reset_component::GameResetComponent,
+    game_scene_resource::GameSceneResource, input_component::InputComponent,
     ui_hud_fps_text_component::UIHUDFpsTextComponent,
     ui_hud_key_text_component::UIHUDKeyTextComponent, ui_hud_resource::UIHUDTextResource,
     ui_hud_text_component::UIHUDTextComponent,
@@ -61,7 +61,7 @@ pub fn ui_hud_startup_system(mut commands: Commands, game_scene: Option<Res<Game
             },
             BackgroundColor(Color::srgba(0.02, 0.02, 0.02, 0.72)),
             UIHUDTextComponent,
-            ResetGameComponent,
+            GameResetComponent,
         ))
         .with_children(|parent| {
             spawn_key_span(parent, "W", KeyCode::KeyW, false);
@@ -177,7 +177,7 @@ pub fn ui_hud_update_system(mut params: UIHUDUpdateParams) {
         write_toggle_toast(&mut params.toast_messages, "Inspector", inspector_on);
     }
     if params.keys.just_pressed(KeyCode::KeyR) {
-        write_action_toast(&mut params.toast_messages, "ResetGame");
+        write_action_toast(&mut params.toast_messages, "GameReset");
     }
 
     for (key_text, mut underline_color) in &mut params.key_text_query {

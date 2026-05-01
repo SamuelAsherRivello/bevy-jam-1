@@ -1,8 +1,8 @@
 use bevy::{prelude::*, ui::experimental::GhostNode};
 
 use crate::{
-    game_scene_component::GameSceneComponent, game_scene_resource::GameSceneResource,
-    reset_game_component::ResetGameComponent,
+    game_reset_component::GameResetComponent, game_scene_component::GameSceneComponent,
+    game_scene_resource::GameSceneResource,
 };
 
 // System creates the root entity for all reloadable game scene content.
@@ -21,7 +21,7 @@ pub fn game_scene_startup_system(
             GlobalTransform::default(),
             GhostNode,
             GameSceneComponent,
-            ResetGameComponent,
+            GameResetComponent,
         ))
         .id();
 
@@ -36,7 +36,7 @@ pub fn spawn_game_scene(world: &mut World) -> Entity {
             GlobalTransform::default(),
             GhostNode,
             GameSceneComponent,
-            ResetGameComponent,
+            GameResetComponent,
         ))
         .id();
 

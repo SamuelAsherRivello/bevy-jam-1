@@ -9,16 +9,21 @@ use crate::{
     game_scene_resource::GameSceneResource,
     health_dying_component::HealthDyingComponent,
     input_component::InputComponent,
+    plane_system::{
+        PLANE_FALL_RESET_Y, PLANE_TRAVEL_DIRECTION_MAX_SPEED, move_toward,
+        plane_apply_bank_center_lateral_push, plane_apply_bank_yaw, plane_bank_with_input,
+        plane_travel_direction, plane_visual_bank_rotation,
+    },
+    plane_visual_component::PlaneVisualComponent,
     player_bundle::{
         PLAYER_START_POSITION, PlayerBundle, PlayerModelBundle, PlayerVisualPivotBundle,
     },
     player_component::PlayerComponent,
-    player_visual_component::PlayerVisualComponent,
 };
 
 // Const values used for player movement tuning (Hot reloadable)
 pub(crate) const PLAYER_MIN_SPEED: f32 = 10.0;
-pub(crate) const PLAYER_START_SPEED: f32 = 12.0;
+pub(crate) use crate::plane_system::PLANE_START_SPEED as PLAYER_START_SPEED;
 pub(crate) const PLAYER_MAX_SPEED: f32 = 20.0;
 const PLAYER_ACCELERATION_PER_SECOND: f32 = 4.0;
 const PLAYER_BRAKE_DECELERATION_PERCENT: f32 = 0.005;
@@ -26,27 +31,19 @@ const PLAYER_TURN_DECELERATION_PERCENT: f32 = 0.001;
 
 // Const values derived from player movement tuning
 const PLAYER_BRAKE_REPEAT_INTERVAL_SECONDS: f32 = 0.1;
-const PLAYER_BANK_LEVEL_SPEED: f32 = 1.5;
-const PLAYER_BANK_TILT_SPEED: f32 = 2.5;
-const PLAYER_BANK_TURN_RATE: f32 = 5.0;
 const PLAYER_BANK_PERPENDICULAR_PUSH_ACCELERATION: f32 = 0.07875;
 const PLAYER_BANK_PERPENDICULAR_PUSH_MAX: f32 = 0.0504;
 const PLAYER_AUTOPILOT_LEFT_SECONDS: f32 = 3.0;
 const PLAYER_AUTOPILOT_WAIT_SECONDS: f32 = 1.0;
 const PLAYER_AUTOPILOT_RIGHT_SECONDS: f32 = 3.0;
-const PLAYER_START_THROTTLE: f32 = PLAYER_START_SPEED / PLAYER_TRAVEL_DIRECTION_MAX_SPEED;
-const PLAYER_MIN_THROTTLE: f32 = PLAYER_MIN_SPEED / PLAYER_TRAVEL_DIRECTION_MAX_SPEED;
-const PLAYER_MODEL_MAX_BANK_DEGREES: f32 = 45.0;
-const PLAYER_TRAVEL_DIRECTION_MAX_SPEED: f32 = PLAYER_MAX_SPEED;
-const PLAYER_VELOCITY_DIRECTION_ALIGNMENT: f32 = 8.0;
+const PLAYER_START_THROTTLE: f32 = PLAYER_START_SPEED / PLANE_TRAVEL_DIRECTION_MAX_SPEED;
+const PLAYER_MIN_THROTTLE: f32 = PLAYER_MIN_SPEED / PLANE_TRAVEL_DIRECTION_MAX_SPEED;
 
 // Const values used in update (Hot reloadable)
 const BULLET_REPEAT_FIRE_INTERVAL_SECONDS: f32 = 0.1;
 const BULLET_REPEAT_UNLOCK_DELAY_SECONDS: f32 = 0.5;
 const BULLET_SPAWN_FORWARD_OFFSET: f32 = 0.96;
 const BULLET_SPAWN_HEIGHT_OFFSET: f32 = 0.336;
-
-const PLAYER_FALL_RESET_Y: f32 = -5.0;
 
 fn reset_player_to_start(
     player: &mut PlayerComponent,
@@ -122,7 +119,7 @@ pub fn player_fixed_update_system(
     >,
     mut player_visual_query: Query<
         (&ChildOf, &mut Transform),
-        (With<PlayerVisualComponent>, Without<PlayerComponent>),
+        (With<PlaneVisualComponent>, Without<PlayerComponent>),
     >,
 ) {
     let Some(input) = input_query.iter().next() else {
@@ -157,7 +154,7 @@ pub fn player_fixed_update_system(
         player.brake_repeat_cooldown_seconds =
             (player.brake_repeat_cooldown_seconds - time.delta_secs()).max(0.0);
 
-        let should_reset_to_start = transform.translation.y < PLAYER_FALL_RESET_Y;
+        let should_reset_to_start = transform.translation.y < PLANE_FALL_RESET_Y;
         if should_reset_to_start {
             reset_player_to_start(
                 &mut player,
@@ -170,13 +167,7 @@ pub fn player_fixed_update_system(
             continue;
         }
 
-        if bank_input != 0.0 {
-            player.bank = (player.bank + bank_input * PLAYER_BANK_TILT_SPEED * time.delta_secs())
-                .clamp(-1.0, 1.0);
-        } else {
-            player.bank =
-                move_toward_zero(player.bank, PLAYER_BANK_LEVEL_SPEED * time.delta_secs());
-        }
+        player.bank = plane_bank_with_input(player.bank, bank_input, time.delta_secs());
 
         let is_brake_pressed = is_player_keyboard_enabled && input.is_brake_pressed;
         let is_brake_just_pressed = is_player_keyboard_enabled && input.is_brake_just_pressed;
@@ -187,29 +178,18 @@ pub fn player_fixed_update_system(
         }
 
         let current_speed = linear_velocity.0.length();
-        let turn_speed_factor = (current_speed / PLAYER_TRAVEL_DIRECTION_MAX_SPEED).clamp(0.0, 1.0);
-        let yaw_radians =
-            player.bank * PLAYER_BANK_TURN_RATE * turn_speed_factor * time.delta_secs();
-        if yaw_radians != 0.0 {
-            transform.rotate_y(yaw_radians);
-        }
-
-        let forward = transform.rotation.mul_vec3(Vec3::Z).normalize_or_zero();
-        let current_direction = if current_speed > 0.0 {
-            linear_velocity.0.normalize_or_zero()
-        } else {
-            forward
-        };
-        let direction_alignment =
-            (PLAYER_VELOCITY_DIRECTION_ALIGNMENT * time.delta_secs()).clamp(0.0, 1.0);
-        let travel_direction = current_direction
-            .lerp(forward, direction_alignment)
-            .normalize_or_zero();
-        let travel_direction = if travel_direction == Vec3::ZERO {
-            forward
-        } else {
-            travel_direction
-        };
+        plane_apply_bank_yaw(
+            &mut transform,
+            player.bank,
+            current_speed,
+            time.delta_secs(),
+        );
+        let (forward, travel_direction) = plane_travel_direction(
+            &transform,
+            linear_velocity.0,
+            current_speed,
+            time.delta_secs(),
+        );
 
         let is_turning = bank_input != 0.0;
         if is_turning && player.turn_entry_speed.is_none() {
@@ -236,7 +216,7 @@ pub fn player_fixed_update_system(
         };
         let target_speed = target_speed.clamp(PLAYER_MIN_SPEED, PLAYER_MAX_SPEED);
         player.throttle =
-            (target_speed / PLAYER_TRAVEL_DIRECTION_MAX_SPEED).max(PLAYER_MIN_THROTTLE);
+            (target_speed / PLANE_TRAVEL_DIRECTION_MAX_SPEED).max(PLAYER_MIN_THROTTLE);
         let target_lateral_push = player.bank * PLAYER_BANK_PERPENDICULAR_PUSH_MAX;
         player.lateral_push = move_toward(
             player.lateral_push,
@@ -244,16 +224,15 @@ pub fn player_fixed_update_system(
             PLAYER_BANK_PERPENDICULAR_PUSH_ACCELERATION * time.delta_secs(),
         );
         let pushed_travel_direction =
-            apply_bank_center_lateral_push(travel_direction, player.lateral_push);
+            plane_apply_bank_center_lateral_push(travel_direction, player.lateral_push);
         linear_velocity.0 = pushed_travel_direction * target_speed;
 
         constant_force.0 = Vec3::ZERO;
         constant_torque.0 = Vec3::ZERO;
 
-        let visual_bank_radians = -player.bank * PLAYER_MODEL_MAX_BANK_DEGREES.to_radians();
         for (child_of, mut visual_transform) in &mut player_visual_query {
             if child_of.parent() == player_entity {
-                visual_transform.rotation = Quat::from_rotation_z(visual_bank_radians);
+                visual_transform.rotation = plane_visual_bank_rotation(player.bank);
             }
         }
 
@@ -290,33 +269,10 @@ pub fn player_fixed_update_system(
     }
 }
 
-fn move_toward_zero(value: f32, step: f32) -> f32 {
-    if value > 0.0 {
-        (value - step).max(0.0)
-    } else {
-        (value + step).min(0.0)
-    }
-}
-
-fn move_toward(value: f32, target: f32, step: f32) -> f32 {
-    if value < target {
-        (value + step).min(target)
-    } else {
-        (value - step).max(target)
-    }
-}
-
 fn player_bullet_spawn_position(transform: &Transform, forward: Vec3) -> Vec3 {
     transform.translation
         + forward * BULLET_SPAWN_FORWARD_OFFSET
         + Vec3::Y * BULLET_SPAWN_HEIGHT_OFFSET
-}
-
-fn apply_bank_center_lateral_push(travel_direction: Vec3, lateral_push: f32) -> Vec3 {
-    let perpendicular = Vec3::new(travel_direction.z, 0.0, -travel_direction.x).normalize_or_zero();
-    let pushed_direction = travel_direction - perpendicular * lateral_push;
-
-    pushed_direction.normalize_or_zero()
 }
 
 pub(crate) fn player_autopilot_bank_input(elapsed_seconds: f32) -> f32 {

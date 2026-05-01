@@ -3,7 +3,7 @@ use bevy_simple_subsecond_system as hot_reload;
 use hot_reload::prelude::hot;
 
 use crate::{
-    game_scene_resource::GameSceneResource, reset_game_component::ResetGameComponent,
+    game_reset_component::GameResetComponent, game_scene_resource::GameSceneResource,
     ui_toast_component::UIToastComponent, ui_toast_queue_resource::UIToastQueueResource,
 };
 
@@ -137,7 +137,7 @@ fn ui_toast_spawn(commands: &mut Commands, text: String, scene_entity: Option<En
                 stay_seconds: UI_TOAST_STAY_TIME,
                 slide_out_seconds: UI_TOAST_SLIDE_OUT_TIME,
             },
-            ResetGameComponent,
+            GameResetComponent,
         ))
         .id();
 

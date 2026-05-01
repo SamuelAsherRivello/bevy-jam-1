@@ -4,10 +4,10 @@
 - EnemyPlugin: Enemy spawning, visual tinting, and fixed-step autopilot movement.
 - HealthPlugin: Fixed-step health damage, regeneration, and death cleanup.
 - InputPlugin: Keyboard and mouse input state captured before fixed gameplay updates.
-- ParticlePlugin: Reusable particle effects attached to game entities.
+- ParticlesAdvancedPlugin: Reusable advanced particle effects attached to game entities.
 - PlayerPlugin: Player spawning and fixed-step flight movement.
 - PropellerPlugin: Propeller node discovery and rotation animation updates.
-- ResetGamePlugin: In-window game-owned content rebuilding after ResetGame requests.
+- GameResetPlugin: In-window game-owned content rebuilding after GameReset requests.
 - UIHUDPlugin: On-screen HUD status text and responsive HUD scaling.
 - UIMiniMapPlugin: Top-down mini-map camera, viewport, and viewport toggle behavior.
 - UIReticlesPlugin: Screen-space enemy reticles for nearby off-center targets.

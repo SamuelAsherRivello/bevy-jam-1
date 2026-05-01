@@ -12,10 +12,10 @@ use hot_reload::prelude::hot;
 
 use crate::{
     camera_advanced_system::camera_advanced_smooth_vec3,
+    game_reset_component::GameResetComponent,
     game_scene_resource::GameSceneResource,
     input_component::InputComponent,
     player_component::PlayerComponent,
-    reset_game_component::ResetGameComponent,
     ui_mini_map_component::{UIMiniMapComponent, UIMiniMapTarget},
     ui_mini_map_viewport_component::UIMiniMapViewportComponent,
     ui_mini_map_viewport_resource::UIMiniMapViewportResource,
@@ -67,7 +67,7 @@ pub fn ui_mini_map_startup_system(
             Name::new("UIMiniMap"),
             Transform::default(),
             GlobalTransform::default(),
-            ResetGameComponent,
+            GameResetComponent,
         ))
         .id();
 
@@ -336,7 +336,7 @@ fn spawn_ui_mini_map_viewport_wire(
             GlobalTransform::default(),
             Visibility::Visible,
             UIMiniMapViewportComponent,
-            ResetGameComponent,
+            GameResetComponent,
         ))
         .id();
 
@@ -367,7 +367,7 @@ fn spawn_ui_mini_map_viewport_wire(
                 RenderLayers::layer(DEBUG_VIEWPORT_RENDER_LAYER),
                 NotShadowCaster,
                 NotShadowReceiver,
-                ResetGameComponent,
+                GameResetComponent,
             ))
             .id();
 

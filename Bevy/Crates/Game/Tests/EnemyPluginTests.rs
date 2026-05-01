@@ -14,11 +14,9 @@ use crate::{
         ENEMY_AUTOPILOT_DURATION_RANGE, ENEMY_COUNT, ENEMY_X_RANGE, ENEMY_Y_RANGE, ENEMY_Z_RANGE,
         enemy_autopilot_duration, enemy_autopilot_pattern, enemy_translation,
     },
-    enemy_system::{
-        enemy_fixed_update_system, enemy_is_green_pixel, enemy_tint_color_to_red,
-        enemy_tint_green_pixels_to_red,
-    },
-    enemy_visual_component::EnemyVisualComponent,
+    enemy_system::enemy_fixed_update_system,
+    plane_system::{plane_is_green_pixel, plane_tint_color_to_red, plane_tint_green_pixels_to_red},
+    plane_visual_component::PlaneVisualComponent,
 };
 
 #[test]
@@ -84,7 +82,7 @@ fn enemy_fixed_update_uses_autopilot_pattern_to_turn() {
         .id();
     let enemy_visual_entity = app
         .world_mut()
-        .spawn((EnemyVisualComponent, Transform::default()))
+        .spawn((PlaneVisualComponent, Transform::default()))
         .id();
     app.world_mut()
         .entity_mut(enemy_entity)
@@ -110,9 +108,9 @@ fn enemy_fixed_update_uses_autopilot_pattern_to_turn() {
 
 #[test]
 fn enemy_green_pixel_detection_targets_green_model_pixels() {
-    assert!(enemy_is_green_pixel(30, 190, 40));
-    assert!(!enemy_is_green_pixel(190, 190, 40));
-    assert!(!enemy_is_green_pixel(30, 80, 40));
+    assert!(plane_is_green_pixel(30, 190, 40));
+    assert!(!plane_is_green_pixel(190, 190, 40));
+    assert!(!plane_is_green_pixel(30, 80, 40));
 }
 
 #[test]
@@ -129,7 +127,7 @@ fn enemy_texture_tint_recolors_green_rgba_pixels_to_red() {
         RenderAssetUsages::default(),
     );
 
-    assert_eq!(enemy_tint_green_pixels_to_red(&mut image), 1);
+    assert_eq!(plane_tint_green_pixels_to_red(&mut image), 1);
     assert_eq!(
         image.data.expect("image should keep cpu data"),
         vec![255, 0, 0, 255, 80, 70, 60, 255]
@@ -138,7 +136,7 @@ fn enemy_texture_tint_recolors_green_rgba_pixels_to_red() {
 
 #[test]
 fn enemy_color_tint_blends_halfway_to_red() {
-    let tinted = enemy_tint_color_to_red(Color::srgba(0.2, 0.8, 0.4, 0.75)).to_srgba();
+    let tinted = plane_tint_color_to_red(Color::srgba(0.2, 0.8, 0.4, 0.75)).to_srgba();
 
     assert_eq!(tinted.red, 0.6);
     assert_eq!(tinted.green, 0.4);

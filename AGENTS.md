@@ -110,10 +110,11 @@ Apply these conventions in active `game` code:
 - **Plugin layout terms:**
   - **Collapsed plugin:** a plugin has its own folder and all of its files are within that folder. This style is acceptable.
   - **Expanded plugin:** a plugin's files are spread across the standard runtime folders. This style is also acceptable.
-  - **Naming token:** each plugin has a naming token derived from its plugin name (e.g. `BulletPlugin` → token `Bullet`). All types, files, and functions belonging to that plugin must begin with the token. For example: `BulletSpawnMessage`, `BulletMeshResource`, `BulletSpawnSoundResource`. This applies to both collapsed and expanded plugins.
+  - **Naming token:** each plugin has a naming token derived from its plugin name (e.g. `BulletPlugin` → token `Bullet`). Prefer tokens where the first part is the reusable domain prefix, so related names group together by domain before action or role. For example, use `GameResetPlugin`, `GameResetComponent`, and `game_reset_fixed_update_system` instead of `ResetGamePlugin`, `ResetGameComponent`, and `reset_game_fixed_update_system`. All types, files, and functions belonging to that plugin must begin with the token. For example: `BulletSpawnMessage`, `BulletMeshResource`, `BulletSpawnSoundResource`. This applies to both collapsed and expanded plugins.
 - **Resources:** type names end with `Resource`; resource filenames end with `Resource.rs`.
 - **Systems:** scheduled/public system functions live under `Systems/`.
 - **System files:** system filenames end with `System.rs`.
+- **Advanced naming:** use `Advanced` in a file/type naming token for a small number of custom project concepts that wrap or extend an existing Bevy or 3rd-party concept. For example, `CameraAdvancedSystem.rs` and `ParticlesAdvancedSystem.rs` represent project-specific behavior layered over Bevy camera behavior and Hanabi particle behavior.
 - **System function names:**
   - startup schedule: `*_startup_system`
   - update schedule: `*_update_system`

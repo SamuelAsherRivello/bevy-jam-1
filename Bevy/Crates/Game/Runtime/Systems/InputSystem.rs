@@ -2,9 +2,9 @@ use bevy::prelude::*;
 use bevy_simple_subsecond_system::prelude::hot;
 
 use crate::audio_system::{Audio, AudioPlayMessage};
+use crate::game_reset_component::GameResetComponent;
 use crate::game_scene_resource::GameSceneResource;
 use crate::input_component::InputComponent;
-use crate::reset_game_component::ResetGameComponent;
 
 // System handles the setup of the input state.
 pub fn input_startup_system(mut commands: Commands, game_scene: Option<Res<GameSceneResource>>) {
@@ -12,7 +12,7 @@ pub fn input_startup_system(mut commands: Commands, game_scene: Option<Res<GameS
         .spawn((
             Name::new("Input"),
             InputComponent::default(),
-            ResetGameComponent,
+            GameResetComponent,
         ))
         .id();
 
@@ -59,8 +59,8 @@ pub fn input_update_system(
         input.is_shoot_just_pressed = is_player_keyboard_enabled
             && (keys.just_pressed(KeyCode::KeyW) || keys.just_pressed(KeyCode::ArrowUp));
 
-        input.is_reset_game_pressed = keys.pressed(KeyCode::KeyR);
-        input.is_reset_game_just_pressed = keys.just_pressed(KeyCode::KeyR);
+        input.is_game_reset_pressed = keys.pressed(KeyCode::KeyR);
+        input.is_game_reset_just_pressed = keys.just_pressed(KeyCode::KeyR);
 
         input.is_brake_pressed = is_player_keyboard_enabled
             && (keys.pressed(KeyCode::KeyS) || keys.pressed(KeyCode::ArrowDown));
@@ -82,7 +82,7 @@ pub fn input_update_system(
             || keys.just_pressed(KeyCode::ArrowDown)
             || keys.just_pressed(KeyCode::ArrowLeft)
             || keys.just_pressed(KeyCode::ArrowRight)
-            || input.is_reset_game_just_pressed
+            || input.is_game_reset_just_pressed
             || input.is_autopilot_toggle_just_pressed
             || input.is_ui_mini_map_viewport_toggle_just_pressed;
     }

@@ -12,7 +12,7 @@ use crate::bullet_resource::{BulletMaterialResource, BulletMeshResource};
 use crate::{
     bullet_component::BulletComponent, bullet_from_enemy_component::BulletFromEnemyComponent,
     bullet_from_player_component::BulletFromPlayerComponent,
-    game_scene_resource::GameSceneResource, reset_game_component::ResetGameComponent,
+    game_reset_component::GameResetComponent, game_scene_resource::GameSceneResource,
 };
 
 const BULLET_SIZE: f32 = 0.16;
@@ -97,7 +97,7 @@ pub fn bullet_spawn_fixed_update_system(
                 GravityScale(1.0),
                 LinearVelocity(physics_shoot_direction * bullet_speed),
                 CollisionEventsEnabled,
-                ResetGameComponent,
+                GameResetComponent,
             ))
             .scale_to(
                 Vec3::splat(BULLET_FULL_SCALE),

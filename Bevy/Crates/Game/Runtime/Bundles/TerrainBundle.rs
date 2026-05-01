@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::reset_game_component::ResetGameComponent;
+use crate::game_reset_component::GameResetComponent;
 
 const TERRAIN_MODEL_PATH: &str = "Models/Terrain/terrain_test_2/terrain_test_2.glb";
 const TERRAIN_SCALE: Vec3 = Vec3::new(0.2, 0.05, 0.2);
@@ -12,7 +12,7 @@ pub struct TerrainBundle {
     name: Name,
     scene: SceneRoot,
     transform: Transform,
-    reset_game: ResetGameComponent,
+    game_reset: GameResetComponent,
 }
 
 impl TerrainBundle {
@@ -23,7 +23,7 @@ impl TerrainBundle {
                 asset_server.load(GltfAssetLabel::Scene(0).from_asset(TERRAIN_MODEL_PATH)),
             ),
             transform: Transform::from_translation(translation).with_scale(TERRAIN_SCALE),
-            reset_game: ResetGameComponent,
+            game_reset: GameResetComponent,
         }
     }
 }

@@ -7,9 +7,9 @@ use std::time::Duration;
 
 use crate::{
     enemy_component::EnemyComponent,
+    game_reset_component::GameResetComponent,
     health_dying_component::HealthDyingComponent,
     player_component::PlayerComponent,
-    reset_game_component::ResetGameComponent,
     ui_reticles_component::{UIReticlesComponent, UIReticlesTargetKind},
     world_system::WORLD_CAMERA_ORDER,
 };
@@ -207,7 +207,7 @@ struct UIReticlesNodeBundle {
     visibility: Visibility,
     z_index: ZIndex,
     reticle: UIReticlesComponent,
-    reset_game: ResetGameComponent,
+    game_reset: GameResetComponent,
 }
 
 impl UIReticlesNodeBundle {
@@ -236,7 +236,7 @@ impl UIReticlesNodeBundle {
                 target_kind,
                 blink_elapsed_seconds: 0.0,
             },
-            reset_game: ResetGameComponent,
+            game_reset: GameResetComponent,
         }
     }
 }

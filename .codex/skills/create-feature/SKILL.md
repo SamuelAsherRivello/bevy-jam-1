@@ -8,7 +8,7 @@ description: Create or extend Bevy gameplay features in this repo. Use when Code
 ## Workflow
 
 1. Inspect the closest existing feature before editing. Prefer `Player` for movement/input patterns, `Bullet` for spawned gameplay objects/messages/resources, and `World` for visual world setup.
-2. Choose the feature token in TitleCase, for example `Enemy`, `Pickup`, or `Explosion`. Use that token as the prefix for all owned public types, files, and functions.
+2. Choose the feature token in TitleCase, for example `Enemy`, `Pickup`, `Explosion`, or `GameReset`. Prefer tokens where the first part is the reusable domain prefix, so related names group together by domain before action or role. Use that token as the prefix for all owned public types, files, and functions.
 3. Create the default files unless the feature is clearly smaller:
    - `Bevy/Crates/Game/Runtime/Plugins/<Token>Plugin.rs`
    - `Bevy/Crates/Game/Runtime/Components/<Token>Component.rs`
@@ -95,7 +95,7 @@ Only annotate update behavior with `#[hot]`. Import `hot` in files that use it.
 - Use Bevy messages for event-like cross-feature communication, and register them from the owning plugin with `.add_message::<TokenMessage>()`.
 - Put visual world details in `WorldPlugin`/`WorldSystem` when they are ambient world setup rather than a standalone gameplay feature.
 - Add startup ordering with `.after(...)` only when the dependency is real, such as spawning after `world_startup_system` or reading input after `input_update_system`.
-- Parent runtime-spawned gameplay entities to `GameSceneResource` when they should be included in scene rebuilds, and include `ResetGameComponent` when they should be removed during in-window resets.
+- Parent runtime-spawned gameplay entities to `GameSceneResource` when they should be included in scene rebuilds, and include `GameResetComponent` when they should be removed during in-window resets.
 
 ## Completion Checklist
 

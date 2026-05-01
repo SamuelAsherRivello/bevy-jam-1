@@ -2,16 +2,16 @@ use bevy::prelude::*;
 use bevy_hanabi::prelude::*;
 
 use crate::{
-    enemy_component::EnemyComponent, particle_component::ParticleComponent,
-    particle_resource::ParticleResource, player_component::PlayerComponent,
+    particles_advanced_component::ParticlesAdvancedComponent,
+    particles_advanced_resource::ParticlesAdvancedResource, plane_component::PlaneComponent,
 };
 
 #[derive(Clone, Copy, Eq, Hash, PartialEq)]
-pub enum ParticleType {
+pub enum ParticlesAdvancedType {
     SmokeTrail,
 }
 
-struct ParticleTypeConfig {
+struct ParticlesAdvancedTypeConfig {
     capacity: u32,
     particles_per_second: f32,
     local_offset: Vec3,
@@ -26,10 +26,10 @@ struct ParticleTypeConfig {
     name: &'static str,
 }
 
-impl ParticleType {
-    fn config(self) -> ParticleTypeConfig {
+impl ParticlesAdvancedType {
+    fn config(self) -> ParticlesAdvancedTypeConfig {
         match self {
-            ParticleType::SmokeTrail => ParticleTypeConfig {
+            ParticlesAdvancedType::SmokeTrail => ParticlesAdvancedTypeConfig {
                 capacity: 512,
                 particles_per_second: 36.0,
                 local_offset: Vec3::new(0.0, 0.42, -0.96),
@@ -51,25 +51,28 @@ impl ParticleType {
     }
 }
 
-const PARTICLE_TYPES: [ParticleType; 1] = [ParticleType::SmokeTrail];
+const PARTICLES_ADVANCED_TYPES: [ParticlesAdvancedType; 1] = [ParticlesAdvancedType::SmokeTrail];
 
 // System creates shared Hanabi effect assets for reusable particle types.
-pub fn particle_startup_system(mut commands: Commands, mut effects: ResMut<Assets<EffectAsset>>) {
-    let effects = PARTICLE_TYPES
+pub fn particles_advanced_startup_system(
+    mut commands: Commands,
+    mut effects: ResMut<Assets<EffectAsset>>,
+) {
+    let effects = PARTICLES_ADVANCED_TYPES
         .into_iter()
         .map(|particle_type| (particle_type, effects.add(particle_type.effect())))
         .collect();
 
-    commands.insert_resource(ParticleResource::new(effects));
+    commands.insert_resource(ParticlesAdvancedResource::new(effects));
 }
 
 // System attaches configured particle emitters to live game entities.
-pub fn particle_attach_system(
+pub fn particles_advanced_attach_system(
     mut commands: Commands,
-    particles: Option<Res<ParticleResource>>,
+    particles: Option<Res<ParticlesAdvancedResource>>,
     plane_query: Query<
-        (Entity, Option<&Name>, Option<&ParticleComponent>),
-        Or<(With<PlayerComponent>, With<EnemyComponent>)>,
+        (Entity, Option<&Name>, Option<&ParticlesAdvancedComponent>),
+        With<PlaneComponent>,
     >,
 ) {
     let Some(particles) = particles else {
@@ -78,7 +81,7 @@ pub fn particle_attach_system(
 
     for (plane_entity, plane_name, particle_component) in &plane_query {
         if particle_component
-            .is_some_and(|particle| particle.particle_type == ParticleType::SmokeTrail)
+            .is_some_and(|particle| particle.particle_type == ParticlesAdvancedType::SmokeTrail)
         {
             continue;
         }
@@ -88,17 +91,17 @@ pub fn particle_attach_system(
             &particles,
             plane_entity,
             plane_name,
-            ParticleType::SmokeTrail,
+            ParticlesAdvancedType::SmokeTrail,
         );
     }
 }
 
 fn particle_attach_to_entity(
     commands: &mut Commands,
-    particles: &ParticleResource,
+    particles: &ParticlesAdvancedResource,
     entity: Entity,
     entity_name: Option<&Name>,
-    particle_type: ParticleType,
+    particle_type: ParticlesAdvancedType,
 ) {
     let Some(effect) = particles.effect(particle_type) else {
         return;
@@ -121,10 +124,10 @@ fn particle_attach_to_entity(
     commands
         .entity(entity)
         .add_child(particle_entity)
-        .insert(ParticleComponent { particle_type });
+        .insert(ParticlesAdvancedComponent { particle_type });
 }
 
-impl ParticleType {
+impl ParticlesAdvancedType {
     fn effect(self) -> EffectAsset {
         let config = self.config();
         let writer = ExprWriter::new();

@@ -20,7 +20,7 @@ Runtime behavior and code flow:
 
 Pros:
 
-The feature has a clear message-based boundary, simple source tags for friendly/enemy damage routing, fixed-step scheduling, and focused tests for multi-bullet spawning, source tagging, velocity, audio, and spawn tween setup. It also participates in reset cleanup through `ResetGameComponent`.
+The feature has a clear message-based boundary, simple source tags for friendly/enemy damage routing, fixed-step scheduling, and focused tests for multi-bullet spawning, source tagging, velocity, audio, and spawn tween setup. It also participates in reset cleanup through `GameResetComponent`.
 
 Cons:
 
