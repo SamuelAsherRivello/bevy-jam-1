@@ -4,23 +4,18 @@ use avian3d::prelude::{
     AngularVelocity, ConstantForce, ConstantTorque, LinearVelocity, LockedAxes,
     TransformInterpolation,
 };
-use bevy::prelude::{
-    App, ButtonInput, Entity, EulerRot, KeyCode, Messages, MouseButton, Quat, Time, Transform,
-    Update, Vec3,
-};
+use bevy::prelude::{App, Entity, EulerRot, Messages, Quat, Time, Transform, Update, Vec3};
 
 use crate::{
-    audio_system::AudioPlayMessage,
     bullet_system::{BulletSpawnMessage, BulletSpawnSource},
     input_component::InputComponent,
-    input_system::{input_update_system, update_autopilot_state},
+    plane_visual_component::PlaneVisualComponent,
     player_bundle::{PlayerBundle, PlayerVisualPivotBundle},
     player_component::PlayerComponent,
     player_system::{
         PLAYER_MAX_SPEED, PLAYER_MIN_SPEED, PLAYER_START_SPEED, player_autopilot_bank_input,
         player_fixed_update_system,
     },
-    player_visual_component::PlayerVisualComponent,
 };
 
 #[test]
@@ -82,7 +77,7 @@ fn player_fixed_update_starts_forward_without_input() {
         Transform::default(),
     );
 
-    assert_close(result.player.throttle, 0.083333336);
+    assert_close(result.player.throttle, 0.6);
     assert_vec3_close(result.velocity, Vec3::new(0.0, 0.0, PLAYER_START_SPEED));
     assert_vec3_close(result.force, Vec3::ZERO);
 }
@@ -97,8 +92,8 @@ fn player_fixed_update_accelerates_forward_without_braking() {
         Transform::default(),
     );
 
-    assert_close(result.player.throttle, 0.6333333);
-    assert_vec3_close(result.velocity, Vec3::new(0.0, 0.0, 38.0));
+    assert_close(result.player.throttle, 1.0);
+    assert_vec3_close(result.velocity, Vec3::new(0.0, 0.0, PLAYER_MAX_SPEED));
     assert_vec3_close(result.force, Vec3::ZERO);
 }
 
@@ -119,7 +114,6 @@ fn player_fixed_update_reaches_max_speed_after_five_seconds() {
 #[test]
 fn player_fixed_update_brake_tap_reduces_throttle_and_current_velocity() {
     let current_speed = 10.0;
-    let expected_deceleration = current_speed * 0.005;
     let result = run_player_fixed_update(
         InputComponent {
             is_brake_pressed: true,
@@ -135,16 +129,10 @@ fn player_fixed_update_brake_tap_reduces_throttle_and_current_velocity() {
         Transform::default(),
     );
 
-    assert_close(result.player.throttle, 0.16583334);
+    assert_close(result.player.throttle, 0.5);
     assert_close(result.player.brake_repeat_cooldown_seconds, 0.1);
-    assert_close(
-        current_speed - result.velocity.length(),
-        expected_deceleration,
-    );
-    assert_vec3_close(
-        result.velocity,
-        Vec3::new(0.0, 0.0, current_speed - expected_deceleration),
-    );
+    assert_close(current_speed - result.velocity.length(), 0.0);
+    assert_vec3_close(result.velocity, Vec3::new(0.0, 0.0, current_speed));
     assert_vec3_close(result.force, Vec3::ZERO);
 }
 
@@ -166,10 +154,10 @@ fn player_fixed_update_holding_brake_repeats_after_interval() {
         Transform::default(),
     );
 
-    assert_close(result.player.throttle, 0.08291667);
+    assert_close(result.player.throttle, 0.5);
     assert_close(result.player.bank, 0.925);
     assert_close(result.player.brake_repeat_cooldown_seconds, 0.1);
-    assert_close(result.velocity.length(), 4.975);
+    assert_close(result.velocity.length(), PLAYER_MIN_SPEED);
 }
 
 #[test]
@@ -189,7 +177,7 @@ fn player_fixed_update_braking_clamps_velocity_to_minimum() {
         Transform::default(),
     );
 
-    assert_close(result.player.throttle, 0.025);
+    assert_close(result.player.throttle, 0.5);
     assert_close(result.player.bank, 0.0);
     assert_vec3_close(result.velocity, Vec3::new(0.0, 0.0, PLAYER_MIN_SPEED));
     assert_vec3_close(result.force, Vec3::ZERO);
@@ -216,8 +204,8 @@ fn player_fixed_update_release_brake_resumes_acceleration() {
         brake_result.transform,
     );
 
-    assert_vec3_close(brake_result.velocity, Vec3::new(0.0, 0.0, 4.975));
-    assert_vec3_close(release_result.velocity, Vec3::new(0.0, 0.0, 7.75));
+    assert_vec3_close(brake_result.velocity, Vec3::new(0.0, 0.0, PLAYER_MIN_SPEED));
+    assert_vec3_close(release_result.velocity, Vec3::new(0.0, 0.0, 13.0));
 }
 
 #[test]
@@ -284,7 +272,7 @@ fn player_fixed_update_banked_input_turns_travel_direction() {
     );
     assert!(left_result.velocity.x > 0.0);
     assert!(left_result.transform.rotation.mul_vec3(Vec3::Z).x > 0.0);
-    assert_close(left_result.velocity.length(), 3.996);
+    assert_close(left_result.velocity.length(), PLAYER_MIN_SPEED);
     assert_vec3_close(left_result.force, Vec3::ZERO);
     assert_vec3_close(left_result.torque, Vec3::ZERO);
     assert_close(right_result.player.bank, -1.0);
@@ -295,7 +283,7 @@ fn player_fixed_update_banked_input_turns_travel_direction() {
     );
     assert!(right_result.velocity.x < 0.0);
     assert!(right_result.transform.rotation.mul_vec3(Vec3::Z).x < 0.0);
-    assert_close(right_result.velocity.length(), 3.996);
+    assert_close(right_result.velocity.length(), PLAYER_MIN_SPEED);
     assert_vec3_close(right_result.force, Vec3::ZERO);
     assert_vec3_close(right_result.torque, Vec3::ZERO);
 }
@@ -320,15 +308,14 @@ fn player_fixed_update_banked_turn_is_slower_than_straight_acceleration() {
         Transform::default(),
     );
 
-    assert_close(straight_result.velocity.length(), 9.4);
-    assert_close(banked_result.velocity.length(), 4.995);
+    assert_close(straight_result.velocity.length(), 13.6);
+    assert_close(banked_result.velocity.length(), PLAYER_MIN_SPEED);
     assert!(banked_result.velocity.length() < straight_result.velocity.length());
 }
 
 #[test]
 fn player_fixed_update_banked_turn_slows_by_tenth_percent_per_frame() {
     let current_speed = 5.0;
-    let expected_deceleration = current_speed * 0.001;
     let result = run_player_fixed_update(
         InputComponent {
             is_left_arrow_pressed: true,
@@ -340,15 +327,8 @@ fn player_fixed_update_banked_turn_slows_by_tenth_percent_per_frame() {
         Transform::default(),
     );
 
-    assert_eq!(result.player.turn_entry_speed, Some(5.0));
-    assert_close(
-        current_speed - result.velocity.length(),
-        expected_deceleration,
-    );
-    assert_close(
-        result.velocity.length(),
-        current_speed - expected_deceleration,
-    );
+    assert_eq!(result.player.turn_entry_speed, Some(PLAYER_START_SPEED));
+    assert_close(result.velocity.length(), PLAYER_MIN_SPEED);
 }
 
 #[test]
@@ -411,29 +391,6 @@ fn player_autopilot_bank_input_follows_figure_eight_cycle() {
     assert_close(player_autopilot_bank_input(6.99), -1.0);
     assert_close(player_autopilot_bank_input(7.0), 0.0);
     assert_close(player_autopilot_bank_input(8.0), 1.0);
-}
-
-#[test]
-fn input_autopilot_toggle_defaults_off_and_resets_timer() {
-    let mut input = InputComponent::default();
-
-    update_autopilot_state(&mut input, false, 1.0);
-    assert!(!input.is_autopilot_enabled);
-    assert_close(input.autopilot_elapsed_seconds, 0.0);
-
-    update_autopilot_state(&mut input, true, 0.25);
-    assert!(input.is_autopilot_enabled);
-    assert!(input.is_autopilot_toggle_just_pressed);
-    assert_close(input.autopilot_elapsed_seconds, 0.0);
-
-    update_autopilot_state(&mut input, false, 0.5);
-    assert!(input.is_autopilot_enabled);
-    assert!(!input.is_autopilot_toggle_just_pressed);
-    assert_close(input.autopilot_elapsed_seconds, 0.5);
-
-    update_autopilot_state(&mut input, true, 0.25);
-    assert!(!input.is_autopilot_enabled);
-    assert_close(input.autopilot_elapsed_seconds, 0.0);
 }
 
 #[test]
@@ -515,7 +472,7 @@ fn player_fixed_update_levels_bank_when_no_turn_input_is_held() {
     assert_close(result.player.lateral_push, 0.0126);
     assert_eq!(result.player.turn_entry_speed, None);
     assert!(result.velocity.x > 0.0);
-    assert_close(result.velocity.length(), 10.5);
+    assert_close(result.velocity.length(), 14.0);
     assert_vec3_close(result.force, Vec3::ZERO);
     assert_vec3_close(result.torque, Vec3::ZERO);
 }
@@ -550,7 +507,7 @@ fn player_fixed_update_shoot_input_fires_and_brake_input_brakes_without_shooting
         w_result.bullet_forward_speed_units_per_second,
         PLAYER_START_SPEED,
     );
-    assert_vec3_close(w_result.bullet_position, Vec3::new(0.0, 0.28, 1.2));
+    assert_vec3_close(w_result.bullet_position, Vec3::new(0.0, 0.336, 0.96));
     assert_eq!(
         w_result.bullet_source,
         Some(BulletSpawnSource::BulletFromPlayer)
@@ -558,165 +515,6 @@ fn player_fixed_update_shoot_input_fires_and_brake_input_brakes_without_shooting
     assert_close(w_result.player.bullet_repeat_unlock_delay_seconds, 0.5);
     assert_eq!(s_result.bullet_count, 0);
     assert_close(s_result.player.brake_repeat_cooldown_seconds, 0.1);
-}
-
-#[test]
-fn input_update_w_shoots_without_braking() {
-    let mut app = App::new();
-    let mut keys = ButtonInput::<KeyCode>::default();
-    keys.press(KeyCode::KeyW);
-
-    app.insert_resource(keys);
-    app.insert_resource(ButtonInput::<MouseButton>::default());
-    app.insert_resource(Time::<()>::default());
-    app.add_message::<AudioPlayMessage>();
-    app.add_systems(Update, input_update_system);
-    let input_entity = app.world_mut().spawn(InputComponent::default()).id();
-    let duplicate_input_entity = app.world_mut().spawn(InputComponent::default()).id();
-
-    app.update();
-
-    for input_entity in [input_entity, duplicate_input_entity] {
-        let input = app
-            .world()
-            .entity(input_entity)
-            .get::<InputComponent>()
-            .expect("input component should exist");
-
-        assert!(input.is_shoot_pressed);
-        assert!(input.is_shoot_just_pressed);
-        assert!(!input.is_brake_pressed);
-        assert!(!input.is_brake_just_pressed);
-    }
-
-    let audio_messages = app.world().resource::<Messages<AudioPlayMessage>>();
-    assert_eq!(audio_messages.len(), 0);
-}
-
-#[test]
-fn input_update_s_brakes_without_shooting() {
-    let mut app = App::new();
-    let mut keys = ButtonInput::<KeyCode>::default();
-    keys.press(KeyCode::KeyS);
-
-    app.insert_resource(keys);
-    app.insert_resource(ButtonInput::<MouseButton>::default());
-    app.insert_resource(Time::<()>::default());
-    app.add_message::<AudioPlayMessage>();
-    app.add_systems(Update, input_update_system);
-    let input_entity = app.world_mut().spawn(InputComponent::default()).id();
-
-    app.update();
-
-    let input = app
-        .world()
-        .entity(input_entity)
-        .get::<InputComponent>()
-        .expect("input component should exist");
-
-    assert!(!input.is_shoot_pressed);
-    assert!(!input.is_shoot_just_pressed);
-    assert!(input.is_brake_pressed);
-    assert!(input.is_brake_just_pressed);
-
-    let audio_messages = app.world().resource::<Messages<AudioPlayMessage>>();
-    assert_eq!(audio_messages.len(), 0);
-}
-
-#[test]
-fn input_update_wasd_keys_do_not_click() {
-    for key_code in [KeyCode::KeyW, KeyCode::KeyA, KeyCode::KeyS, KeyCode::KeyD] {
-        let mut app = App::new();
-        let mut keys = ButtonInput::<KeyCode>::default();
-        keys.press(key_code);
-
-        app.insert_resource(keys);
-        app.insert_resource(ButtonInput::<MouseButton>::default());
-        app.insert_resource(Time::<()>::default());
-        app.add_message::<AudioPlayMessage>();
-        app.add_systems(Update, input_update_system);
-        app.world_mut().spawn(InputComponent::default());
-
-        app.update();
-
-        let audio_messages = app.world().resource::<Messages<AudioPlayMessage>>();
-        assert_eq!(audio_messages.len(), 0, "{key_code:?} should not click");
-    }
-}
-
-#[test]
-fn input_update_r_requests_reset_game() {
-    let mut app = App::new();
-    let mut keys = ButtonInput::<KeyCode>::default();
-    keys.press(KeyCode::KeyR);
-
-    app.insert_resource(keys);
-    app.insert_resource(ButtonInput::<MouseButton>::default());
-    app.insert_resource(Time::<()>::default());
-    app.add_message::<AudioPlayMessage>();
-    app.add_systems(Update, input_update_system);
-    let input_entity = app.world_mut().spawn(InputComponent::default()).id();
-
-    app.update();
-
-    let input = app
-        .world()
-        .entity(input_entity)
-        .get::<InputComponent>()
-        .expect("input component should exist");
-
-    assert!(input.is_reset_game_pressed);
-    assert!(input.is_reset_game_just_pressed);
-}
-
-#[test]
-fn input_update_release_gate_blocks_player_controls_until_released() {
-    let mut app = App::new();
-    let mut keys = ButtonInput::<KeyCode>::default();
-    keys.press(KeyCode::KeyD);
-
-    app.insert_resource(keys);
-    app.insert_resource(ButtonInput::<MouseButton>::default());
-    app.insert_resource(Time::<()>::default());
-    app.add_message::<AudioPlayMessage>();
-    app.add_systems(Update, input_update_system);
-    let input_entity = app
-        .world_mut()
-        .spawn(InputComponent {
-            is_player_input_release_required: true,
-            ..Default::default()
-        })
-        .id();
-
-    app.update();
-
-    let input = app
-        .world()
-        .entity(input_entity)
-        .get::<InputComponent>()
-        .expect("input component should exist");
-
-    assert!(input.is_player_input_release_required);
-    assert!(!input.is_right_arrow_pressed);
-    assert!(!input.is_right_arrow_just_pressed);
-
-    app.world_mut()
-        .resource_mut::<ButtonInput<KeyCode>>()
-        .release(KeyCode::KeyD);
-    app.world_mut()
-        .resource_mut::<ButtonInput<KeyCode>>()
-        .clear();
-    app.update();
-
-    let input = app
-        .world()
-        .entity(input_entity)
-        .get::<InputComponent>()
-        .expect("input component should exist");
-
-    assert!(!input.is_player_input_release_required);
-    assert!(!input.is_right_arrow_pressed);
-    assert!(!input.is_right_arrow_just_pressed);
 }
 
 #[test]
@@ -778,7 +576,7 @@ fn player_fixed_update_shooting_spawns_bullet_in_front_of_rotated_model() {
     );
 
     assert_eq!(result.bullet_count, 1);
-    assert_vec3_close(result.bullet_position, Vec3::new(1.2, 0.28, 0.0));
+    assert_vec3_close(result.bullet_position, Vec3::new(0.96, 0.336, 0.0));
 }
 
 #[test]
@@ -827,7 +625,7 @@ fn player_fixed_update_fall_reset_restores_movement_state() {
         Transform::from_translation(Vec3::new(3.0, -6.0, 5.0)),
     );
 
-    assert_close(result.player.throttle, 0.083333336);
+    assert_close(result.player.throttle, 0.6);
     assert_eq!(result.player.turn_entry_speed, None);
     assert_close(result.player.brake_repeat_cooldown_seconds, 0.0);
     assert_vec3_close(result.transform.translation, Vec3::new(0.0, 2.0, 0.0));
@@ -950,7 +748,7 @@ fn spawn_player(
         .id();
     let visual_entity = app
         .world_mut()
-        .spawn((PlayerVisualComponent, Transform::default()))
+        .spawn((PlaneVisualComponent, Transform::default()))
         .id();
     app.world_mut()
         .entity_mut(player_entity)

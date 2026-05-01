@@ -2,7 +2,7 @@ use avian3d::prelude::{Collider, CollisionEventsEnabled, RigidBody};
 use bevy::prelude::*;
 
 use crate::{
-    reset_game_component::ResetGameComponent,
+    game_reset_component::GameResetComponent,
     terrain_bundle::{TerrainBundle, terrain_grid_graphics_center, terrain_tile_spacing},
 };
 
@@ -23,7 +23,7 @@ pub struct TerrainGridBundle {
     rigid_body: RigidBody,
     collider: Collider,
     collision_events: CollisionEventsEnabled,
-    reset_game: ResetGameComponent,
+    game_reset: GameResetComponent,
 }
 
 impl Default for TerrainGridBundle {
@@ -67,7 +67,7 @@ impl TerrainGridBundle {
             rigid_body: RigidBody::Static,
             collider: terrain_grid_collider(collider_extents),
             collision_events: CollisionEventsEnabled,
-            reset_game: ResetGameComponent,
+            game_reset: GameResetComponent,
         }
     }
 

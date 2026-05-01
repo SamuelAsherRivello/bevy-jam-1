@@ -16,4 +16,5 @@ Current repo skills:
 - `explain-feature` - Explain one game feature by mapping a request to its plugin and related runtime code.
 - `iterate-feature` - Review one feature after explaining it, reading its full code, updating caches, and offering three next-step choices.
 - `list-features` - List game features from `.codex/cache/list-features.txt`.
+- `refactor-feature` - Refactor one Bevy feature or development area while preserving behavior and UX.
 - `run-model-validation` - Add model folders to the Bevy model asset validation flow.

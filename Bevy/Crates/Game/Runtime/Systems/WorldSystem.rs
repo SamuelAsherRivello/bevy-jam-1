@@ -8,7 +8,7 @@ use bevy::{
 
 use crate::{
     camera_advanced_component::CameraAdvancedComponent, cloud_bundle_spawner::CloudBundleSpawner,
-    game_scene_resource::GameSceneResource, reset_game_component::ResetGameComponent,
+    game_reset_component::GameResetComponent, game_scene_resource::GameSceneResource,
     terrain_grid_bundle::TerrainGridBundle,
 };
 
@@ -42,7 +42,7 @@ pub fn world_startup_system(
             Name::new("Camera"),
             Transform::default(),
             GlobalTransform::default(),
-            ResetGameComponent,
+            GameResetComponent,
         ))
         .id();
     parent_to_game_scene(&mut commands, &game_scene, camera_parent);
@@ -109,7 +109,7 @@ pub fn world_startup_system(
             Name::new("Lights"),
             Transform::default(),
             GlobalTransform::default(),
-            ResetGameComponent,
+            GameResetComponent,
         ))
         .id();
     parent_to_game_scene(&mut commands, &game_scene, lights_parent);
@@ -156,7 +156,7 @@ pub fn world_startup_system(
             Name::new("Environment"),
             Transform::default(),
             GlobalTransform::default(),
-            ResetGameComponent,
+            GameResetComponent,
         ))
         .id();
     parent_to_game_scene(&mut commands, &game_scene, environment_parent);

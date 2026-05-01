@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use std::borrow::Cow;
 
-use crate::{cloud_component::CloudComponent, reset_game_component::ResetGameComponent};
+use crate::{cloud_component::CloudComponent, game_reset_component::GameResetComponent};
 
 const CLOUD_MODEL_PATH: &str = "Models/Objects/clouds/LOW-POLY CLOUDS.glb";
 
@@ -11,7 +11,7 @@ pub struct CloudBundle {
     scene: SceneRoot,
     transform: Transform,
     cloud: CloudComponent,
-    reset_game: ResetGameComponent,
+    game_reset: GameResetComponent,
 }
 
 impl CloudBundle {
@@ -39,7 +39,7 @@ impl CloudBundle {
                 y_oscillation_seconds,
                 y_offset_seconds,
             ),
-            reset_game: ResetGameComponent,
+            game_reset: GameResetComponent,
         }
     }
 }

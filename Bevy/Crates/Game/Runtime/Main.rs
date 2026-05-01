@@ -1,53 +1,57 @@
 use avian3d::prelude::{Gravity, PhysicsDebugPlugin, PhysicsGizmos, PhysicsPlugins};
 use bevy::app::AppExit;
 use bevy::prelude::*;
+use bevy_hanabi::prelude::HanabiPlugin;
 use bevy_simple_subsecond_system as hot_reload;
 use bevy_tweening::TweeningPlugin;
 use hot_reload::prelude::SimpleSubsecondPlugin;
 use shared::{bevy_inspector_plugin, context_plugin, custom_window_plugin, custom_window_resource};
 
 #[cfg(test)]
-#[path = "../Tests/AudioTests.rs"]
-mod audio_tests;
+#[path = "../Tests/AudioPluginTests.rs"]
+mod audio_plugin_tests;
 #[cfg(test)]
 #[path = "../Tests/AutopilotTests.rs"]
 mod autopilot_tests;
 #[cfg(test)]
-#[path = "../Tests/BulletTests.rs"]
-mod bullet_tests;
+#[path = "../Tests/BulletPluginTests.rs"]
+mod bullet_plugin_tests;
 #[cfg(test)]
-#[path = "../Tests/CameraAdvancedTests.rs"]
-mod camera_advanced_tests;
+#[path = "../Tests/CameraAdvancedPluginTests.rs"]
+mod camera_advanced_plugin_tests;
 #[cfg(test)]
-#[path = "../Tests/CloudTests.rs"]
-mod cloud_tests;
+#[path = "../Tests/EnemyPluginTests.rs"]
+mod enemy_plugin_tests;
 #[cfg(test)]
-#[path = "../Tests/EnemyTests.rs"]
-mod enemy_tests;
+#[path = "../Tests/HealthPluginTests.rs"]
+mod health_plugin_tests;
 #[cfg(test)]
-#[path = "../Tests/HealthTests.rs"]
-mod health_tests;
+#[path = "../Tests/InputPluginTests.rs"]
+mod input_plugin_tests;
 #[cfg(test)]
 #[path = "../Tests/ModelAssetTests.rs"]
 mod model_asset_tests;
 #[cfg(test)]
-#[path = "../Tests/PlayerTests.rs"]
-mod player_tests;
+#[path = "../Tests/PlayerPluginTests.rs"]
+mod player_plugin_tests;
 #[cfg(test)]
-#[path = "../Tests/PropellerTests.rs"]
-mod propeller_tests;
+#[path = "../Tests/PropellerPluginTests.rs"]
+mod propeller_plugin_tests;
 #[cfg(test)]
-#[path = "../Tests/TerrainTests.rs"]
-mod terrain_tests;
+#[path = "../Tests/UIMiniMapPluginTests.rs"]
+mod ui_mini_map_plugin_tests;
 #[cfg(test)]
-#[path = "../Tests/UIMiniMapTests.rs"]
-mod ui_mini_map_tests;
+#[path = "../Tests/UIReticlesPluginTests.rs"]
+mod ui_reticles_plugin_tests;
 #[cfg(test)]
-#[path = "../Tests/UIReticlesTests.rs"]
-mod ui_reticles_tests;
+#[path = "../Tests/UIToastPluginTests.rs"]
+mod ui_toast_plugin_tests;
 #[cfg(test)]
-#[path = "../Tests/UIToastTests.rs"]
-mod ui_toast_tests;
+#[path = "../Tests/WorldPluginCloudTests.rs"]
+mod world_plugin_cloud_tests;
+#[cfg(test)]
+#[path = "../Tests/WorldPluginTerrainTests.rs"]
+mod world_plugin_terrain_tests;
 
 fn game_asset_root_path() -> String {
     format!("{}/Assets", env!("CARGO_MANIFEST_DIR")).replace('\\', "/")
@@ -100,10 +104,12 @@ pub(crate) mod enemy_plugin;
 pub(crate) mod enemy_spawner;
 #[path = "Systems/EnemySystem.rs"]
 pub(crate) mod enemy_system;
-#[path = "Components/EnemyTextureTintComponent.rs"]
-pub(crate) mod enemy_texture_tint_component;
-#[path = "Components/EnemyVisualComponent.rs"]
-pub(crate) mod enemy_visual_component;
+#[path = "Components/GameResetComponent.rs"]
+pub(crate) mod game_reset_component;
+#[path = "Plugins/GameResetPlugin.rs"]
+pub(crate) mod game_reset_plugin;
+#[path = "Systems/GameResetSystem.rs"]
+pub(crate) mod game_reset_system;
 #[path = "Scenes/GameSceneComponent.rs"]
 pub(crate) mod game_scene_component;
 #[path = "Scenes/GameScenePlugin.rs"]
@@ -126,6 +132,26 @@ pub(crate) mod input_component;
 pub(crate) mod input_plugin;
 #[path = "Systems/InputSystem.rs"]
 pub(crate) mod input_system;
+#[path = "Components/ParticlesAdvancedComponent.rs"]
+pub(crate) mod particles_advanced_component;
+#[path = "Plugins/ParticlesAdvancedPlugin.rs"]
+pub(crate) mod particles_advanced_plugin;
+#[path = "Resources/ParticlesAdvancedResource.rs"]
+pub(crate) mod particles_advanced_resource;
+#[path = "Systems/ParticlesAdvancedSystem.rs"]
+pub(crate) mod particles_advanced_system;
+#[path = "Bundles/PlaneBundle.rs"]
+pub(crate) mod plane_bundle;
+#[path = "Components/PlaneComponent.rs"]
+pub(crate) mod plane_component;
+#[path = "Components/PlanePropellerComponent.rs"]
+pub(crate) mod plane_propeller_component;
+#[path = "Systems/PlaneSystem.rs"]
+pub(crate) mod plane_system;
+#[path = "Components/PlaneTextureTintComponent.rs"]
+pub(crate) mod plane_texture_tint_component;
+#[path = "Components/PlaneVisualComponent.rs"]
+pub(crate) mod plane_visual_component;
 #[path = "Bundles/PlayerBundle.rs"]
 pub(crate) mod player_bundle;
 #[path = "Components/PlayerComponent.rs"]
@@ -134,20 +160,10 @@ pub(crate) mod player_component;
 pub(crate) mod player_plugin;
 #[path = "Systems/PlayerSystem.rs"]
 pub(crate) mod player_system;
-#[path = "Components/PlayerVisualComponent.rs"]
-pub(crate) mod player_visual_component;
-#[path = "Components/PropellerComponent.rs"]
-pub(crate) mod propeller_component;
 #[path = "Plugins/PropellerPlugin.rs"]
 pub(crate) mod propeller_plugin;
 #[path = "Systems/PropellerSystem.rs"]
 pub(crate) mod propeller_system;
-#[path = "Components/ResetGameComponent.rs"]
-pub(crate) mod reset_game_component;
-#[path = "Plugins/ResetGamePlugin.rs"]
-pub(crate) mod reset_game_plugin;
-#[path = "Systems/ResetGameSystem.rs"]
-pub(crate) mod reset_game_system;
 #[path = "Bundles/TerrainBundle.rs"]
 pub(crate) mod terrain_bundle;
 #[path = "Bundles/TerrainGridBundle.rs"]
@@ -255,6 +271,9 @@ fn main_hot_reload() -> App {
     // Plugin handles tween animations.
     app.add_plugins(TweeningPlugin);
 
+    // Plugin handles GPU particle rendering.
+    app.add_plugins(HanabiPlugin);
+
     // Shared crate plugins.
     // Plugin handles frame and hot-reload state.
     app.add_plugins(context_plugin::ContextPlugin);
@@ -293,6 +312,9 @@ fn main_hot_reload() -> App {
     // Plugin handles enemy spawn and fixed-step autopilot movement.
     app.add_plugins(enemy_plugin::EnemyPlugin);
 
+    // Plugin handles reusable advanced particle effects attached to game entities.
+    app.add_plugins(particles_advanced_plugin::ParticlesAdvancedPlugin);
+
     // Plugin handles propeller discovery and rotation.
     app.add_plugins(propeller_plugin::PropellerPlugin);
 
@@ -309,7 +331,7 @@ fn main_hot_reload() -> App {
     app.add_plugins(health_plugin::HealthPlugin);
 
     // Plugin handles in-window content rebuilds.
-    app.add_plugins(reset_game_plugin::ResetGamePlugin);
+    app.add_plugins(game_reset_plugin::GameResetPlugin);
 
     app
 }

@@ -126,7 +126,7 @@ The workspace has 2 active crates: `game` and `shared`.
 | `F` | Show or hide FPS | ✅ |
 | `I` | Show or hide Bevy Inspector | ✅ |
 | `O` | DebugDraw | ✅ |
-| `R` | ResetGame | ❌ |
+| `R` | GameReset | ❌ |
 
 ---
 
