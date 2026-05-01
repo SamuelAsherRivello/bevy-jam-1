@@ -78,11 +78,11 @@ pub fn input_update_system(
         input.is_ui_mini_map_viewport_toggle_pressed = keys.pressed(KeyCode::KeyO);
         input.is_ui_mini_map_viewport_toggle_just_pressed = keys.just_pressed(KeyCode::KeyO);
 
-        is_audio_triggered |= input.is_shoot_just_pressed
+        is_audio_triggered |= keys.just_pressed(KeyCode::ArrowUp)
+            || keys.just_pressed(KeyCode::ArrowDown)
+            || keys.just_pressed(KeyCode::ArrowLeft)
+            || keys.just_pressed(KeyCode::ArrowRight)
             || input.is_reset_game_just_pressed
-            || input.is_brake_just_pressed
-            || input.is_left_arrow_just_pressed
-            || input.is_right_arrow_just_pressed
             || input.is_autopilot_toggle_just_pressed
             || input.is_ui_mini_map_viewport_toggle_just_pressed;
     }

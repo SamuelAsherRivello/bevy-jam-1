@@ -131,7 +131,7 @@ pub fn ui_hud_update_system(mut params: UIHUDUpdateParams) {
         physics_gizmo_config.enabled = !physics_gizmo_config.enabled;
         write_toggle_toast(
             &mut params.toast_messages,
-            "DebugDraw",
+            "Object Debug Drawing (Camera/Physics)",
             physics_gizmo_config.enabled,
         );
     }

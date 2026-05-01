@@ -10,14 +10,14 @@ use bevy::prelude::{
 };
 
 use crate::{
-    audio_system::{Audio, AudioPlayMessage},
+    audio_system::AudioPlayMessage,
     bullet_system::{BulletSpawnMessage, BulletSpawnSource},
     input_component::InputComponent,
     input_system::{input_update_system, update_autopilot_state},
     player_bundle::{PlayerBundle, PlayerVisualPivotBundle},
     player_component::PlayerComponent,
     player_system::{
-        PLAYER_BRAKE_MIN_SPEED, PLAYER_MAX_SPEED, PLAYER_START_SPEED, player_autopilot_bank_input,
+        PLAYER_MAX_SPEED, PLAYER_MIN_SPEED, PLAYER_START_SPEED, player_autopilot_bank_input,
         player_fixed_update_system,
     },
     player_visual_component::PlayerVisualComponent,
@@ -27,8 +27,9 @@ use crate::{
 fn player_default_values_match_simulation_controls() {
     let player = PlayerComponent::default();
 
-    assert_close(player.throttle, 0.1);
+    assert_close(player.throttle, 0.25);
     assert_close(player.bank, 0.0);
+    assert_close(player.lateral_push, 0.0);
     assert_eq!(player.turn_entry_speed, None);
     assert_close(player.brake_repeat_cooldown_seconds, 0.0);
     assert_close(player.bullet_fire_cooldown_seconds, 0.0);
@@ -81,7 +82,7 @@ fn player_fixed_update_starts_forward_without_input() {
         Transform::default(),
     );
 
-    assert_close(result.player.throttle, 0.33333334);
+    assert_close(result.player.throttle, 0.083333336);
     assert_vec3_close(result.velocity, Vec3::new(0.0, 0.0, PLAYER_START_SPEED));
     assert_vec3_close(result.force, Vec3::ZERO);
 }
@@ -96,8 +97,8 @@ fn player_fixed_update_accelerates_forward_without_braking() {
         Transform::default(),
     );
 
-    assert_close(result.player.throttle, 0.73333335);
-    assert_vec3_close(result.velocity, Vec3::new(0.0, 0.0, 11.0));
+    assert_close(result.player.throttle, 0.6333333);
+    assert_vec3_close(result.velocity, Vec3::new(0.0, 0.0, 38.0));
     assert_vec3_close(result.force, Vec3::ZERO);
 }
 
@@ -117,6 +118,8 @@ fn player_fixed_update_reaches_max_speed_after_five_seconds() {
 
 #[test]
 fn player_fixed_update_brake_tap_reduces_throttle_and_current_velocity() {
+    let current_speed = 10.0;
+    let expected_deceleration = current_speed * 0.005;
     let result = run_player_fixed_update(
         InputComponent {
             is_brake_pressed: true,
@@ -128,13 +131,20 @@ fn player_fixed_update_brake_tap_reduces_throttle_and_current_velocity() {
             ..Default::default()
         },
         0.25,
-        Vec3::new(0.0, 0.0, 10.0),
+        Vec3::new(0.0, 0.0, current_speed),
         Transform::default(),
     );
 
-    assert_close(result.player.throttle, 0.13333334);
+    assert_close(result.player.throttle, 0.16583334);
     assert_close(result.player.brake_repeat_cooldown_seconds, 0.1);
-    assert_vec3_close(result.velocity, Vec3::new(0.0, 0.0, 2.0));
+    assert_close(
+        current_speed - result.velocity.length(),
+        expected_deceleration,
+    );
+    assert_vec3_close(
+        result.velocity,
+        Vec3::new(0.0, 0.0, current_speed - expected_deceleration),
+    );
     assert_vec3_close(result.force, Vec3::ZERO);
 }
 
@@ -156,10 +166,10 @@ fn player_fixed_update_holding_brake_repeats_after_interval() {
         Transform::default(),
     );
 
-    assert_close(result.player.throttle, 0.22666667);
+    assert_close(result.player.throttle, 0.08291667);
     assert_close(result.player.bank, 0.925);
     assert_close(result.player.brake_repeat_cooldown_seconds, 0.1);
-    assert_close(result.velocity.length(), 3.4);
+    assert_close(result.velocity.length(), 4.975);
 }
 
 #[test]
@@ -179,9 +189,9 @@ fn player_fixed_update_braking_clamps_velocity_to_minimum() {
         Transform::default(),
     );
 
-    assert_close(result.player.throttle, 0.1);
+    assert_close(result.player.throttle, 0.025);
     assert_close(result.player.bank, 0.0);
-    assert_vec3_close(result.velocity, Vec3::new(0.0, 0.0, PLAYER_BRAKE_MIN_SPEED));
+    assert_vec3_close(result.velocity, Vec3::new(0.0, 0.0, PLAYER_MIN_SPEED));
     assert_vec3_close(result.force, Vec3::ZERO);
 }
 
@@ -206,11 +216,8 @@ fn player_fixed_update_release_brake_resumes_acceleration() {
         brake_result.transform,
     );
 
-    assert_vec3_close(
-        brake_result.velocity,
-        Vec3::new(0.0, 0.0, PLAYER_BRAKE_MIN_SPEED),
-    );
-    assert_vec3_close(release_result.velocity, Vec3::new(0.0, 0.0, 5.5));
+    assert_vec3_close(brake_result.velocity, Vec3::new(0.0, 0.0, 4.975));
+    assert_vec3_close(release_result.velocity, Vec3::new(0.0, 0.0, 7.75));
 }
 
 #[test]
@@ -227,7 +234,7 @@ fn player_fixed_update_holding_brake_uses_forward_direction_as_minimum_from_zero
         Transform::default(),
     );
 
-    assert_vec3_close(result.velocity, Vec3::new(0.0, 0.0, PLAYER_BRAKE_MIN_SPEED));
+    assert_vec3_close(result.velocity, Vec3::new(0.0, 0.0, PLAYER_MIN_SPEED));
 }
 
 #[test]
@@ -243,7 +250,7 @@ fn player_fixed_update_holding_brake_uses_forward_direction_as_minimum_from_slow
         Transform::from_rotation(Quat::from_rotation_y(90.0_f32.to_radians())),
     );
 
-    assert_vec3_close(result.velocity, Vec3::new(PLAYER_BRAKE_MIN_SPEED, 0.0, 0.0));
+    assert_vec3_close(result.velocity, Vec3::new(PLAYER_MIN_SPEED, 0.0, 0.0));
 }
 
 #[test]
@@ -270,29 +277,31 @@ fn player_fixed_update_banked_input_turns_travel_direction() {
     );
 
     assert_close(left_result.player.bank, 1.0);
+    assert_close(left_result.player.lateral_push, 0.0315);
     assert_eq!(
         left_result.player.turn_entry_speed,
         Some(PLAYER_START_SPEED)
     );
     assert!(left_result.velocity.x > 0.0);
     assert!(left_result.transform.rotation.mul_vec3(Vec3::Z).x > 0.0);
-    assert_close(left_result.velocity.length(), 4.68);
+    assert_close(left_result.velocity.length(), 3.996);
     assert_vec3_close(left_result.force, Vec3::ZERO);
     assert_vec3_close(left_result.torque, Vec3::ZERO);
     assert_close(right_result.player.bank, -1.0);
+    assert_close(right_result.player.lateral_push, -0.0315);
     assert_eq!(
         right_result.player.turn_entry_speed,
         Some(PLAYER_START_SPEED)
     );
     assert!(right_result.velocity.x < 0.0);
     assert!(right_result.transform.rotation.mul_vec3(Vec3::Z).x < 0.0);
-    assert_close(right_result.velocity.length(), 4.68);
+    assert_close(right_result.velocity.length(), 3.996);
     assert_vec3_close(right_result.force, Vec3::ZERO);
     assert_vec3_close(right_result.torque, Vec3::ZERO);
 }
 
 #[test]
-fn player_fixed_update_banked_turn_decelerates_toward_entry_speed_factor() {
+fn player_fixed_update_banked_turn_is_slower_than_straight_acceleration() {
     let straight_result = run_player_fixed_update(
         InputComponent::default(),
         PlayerComponent::default(),
@@ -311,13 +320,15 @@ fn player_fixed_update_banked_turn_decelerates_toward_entry_speed_factor() {
         Transform::default(),
     );
 
-    assert_close(straight_result.velocity.length(), 5.8);
-    assert_close(banked_result.velocity.length(), 4.68);
+    assert_close(straight_result.velocity.length(), 9.4);
+    assert_close(banked_result.velocity.length(), 4.995);
     assert!(banked_result.velocity.length() < straight_result.velocity.length());
 }
 
 #[test]
-fn player_fixed_update_banked_turn_reaches_seventy_percent_of_entry_speed() {
+fn player_fixed_update_banked_turn_slows_by_tenth_percent_per_frame() {
+    let current_speed = 5.0;
+    let expected_deceleration = current_speed * 0.001;
     let result = run_player_fixed_update(
         InputComponent {
             is_left_arrow_pressed: true,
@@ -325,12 +336,19 @@ fn player_fixed_update_banked_turn_reaches_seventy_percent_of_entry_speed() {
         },
         PlayerComponent::default(),
         2.0,
-        Vec3::new(0.0, 0.0, 5.0),
+        Vec3::new(0.0, 0.0, current_speed),
         Transform::default(),
     );
 
     assert_eq!(result.player.turn_entry_speed, Some(5.0));
-    assert_close(result.velocity.length(), 3.5);
+    assert_close(
+        current_speed - result.velocity.length(),
+        expected_deceleration,
+    );
+    assert_close(
+        result.velocity.length(),
+        current_speed - expected_deceleration,
+    );
 }
 
 #[test]
@@ -494,9 +512,10 @@ fn player_fixed_update_levels_bank_when_no_turn_input_is_held() {
     );
 
     assert_close(result.player.bank, 0.25);
+    assert_close(result.player.lateral_push, 0.0126);
     assert_eq!(result.player.turn_entry_speed, None);
     assert!(result.velocity.x > 0.0);
-    assert_close(result.velocity.length(), 6.0);
+    assert_close(result.velocity.length(), 10.5);
     assert_vec3_close(result.force, Vec3::ZERO);
     assert_vec3_close(result.torque, Vec3::ZERO);
 }
@@ -569,6 +588,9 @@ fn input_update_w_shoots_without_braking() {
         assert!(!input.is_brake_pressed);
         assert!(!input.is_brake_just_pressed);
     }
+
+    let audio_messages = app.world().resource::<Messages<AudioPlayMessage>>();
+    assert_eq!(audio_messages.len(), 0);
 }
 
 #[test]
@@ -598,15 +620,28 @@ fn input_update_s_brakes_without_shooting() {
     assert!(input.is_brake_just_pressed);
 
     let audio_messages = app.world().resource::<Messages<AudioPlayMessage>>();
-    assert_eq!(audio_messages.len(), 1);
-    assert_eq!(
-        audio_messages
-            .iter_current_update_messages()
-            .last()
-            .unwrap()
-            .audio,
-        Audio::CLICK
-    );
+    assert_eq!(audio_messages.len(), 0);
+}
+
+#[test]
+fn input_update_wasd_keys_do_not_click() {
+    for key_code in [KeyCode::KeyW, KeyCode::KeyA, KeyCode::KeyS, KeyCode::KeyD] {
+        let mut app = App::new();
+        let mut keys = ButtonInput::<KeyCode>::default();
+        keys.press(key_code);
+
+        app.insert_resource(keys);
+        app.insert_resource(ButtonInput::<MouseButton>::default());
+        app.insert_resource(Time::<()>::default());
+        app.add_message::<AudioPlayMessage>();
+        app.add_systems(Update, input_update_system);
+        app.world_mut().spawn(InputComponent::default());
+
+        app.update();
+
+        let audio_messages = app.world().resource::<Messages<AudioPlayMessage>>();
+        assert_eq!(audio_messages.len(), 0, "{key_code:?} should not click");
+    }
 }
 
 #[test]
@@ -792,7 +827,7 @@ fn player_fixed_update_fall_reset_restores_movement_state() {
         Transform::from_translation(Vec3::new(3.0, -6.0, 5.0)),
     );
 
-    assert_close(result.player.throttle, 0.1);
+    assert_close(result.player.throttle, 0.083333336);
     assert_eq!(result.player.turn_entry_speed, None);
     assert_close(result.player.brake_repeat_cooldown_seconds, 0.0);
     assert_vec3_close(result.transform.translation, Vec3::new(0.0, 2.0, 0.0));
@@ -840,6 +875,7 @@ fn run_player_fixed_update(
     let updated_player = PlayerComponent {
         throttle: updated_player_ref.throttle,
         bank: updated_player_ref.bank,
+        lateral_push: updated_player_ref.lateral_push,
         turn_entry_speed: updated_player_ref.turn_entry_speed,
         brake_repeat_cooldown_seconds: updated_player_ref.brake_repeat_cooldown_seconds,
         bullet_fire_cooldown_seconds: updated_player_ref.bullet_fire_cooldown_seconds,

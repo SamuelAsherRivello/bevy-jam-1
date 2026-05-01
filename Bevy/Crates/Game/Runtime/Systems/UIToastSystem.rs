@@ -8,7 +8,7 @@ use crate::{
 };
 
 pub(crate) const UI_TOAST_WIDTH: f32 = 360.0;
-pub(crate) const UI_TOAST_HEIGHT: f32 = 48.0;
+pub(crate) const UI_TOAST_HEIGHT: f32 = 57.6;
 pub(crate) const UI_TOAST_TOP_PIXELS: f32 = 24.0;
 pub(crate) const UI_TOAST_SLIDE_IN_TIME: f32 = 0.5;
 pub(crate) const UI_TOAST_SLIDE_OUT_TIME: f32 = 0.5;

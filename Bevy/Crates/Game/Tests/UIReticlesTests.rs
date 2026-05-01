@@ -1,9 +1,12 @@
 use bevy::prelude::*;
 
 use crate::ui_reticles_system::{
-    UI_RETICLES_ANGLE_OF_ATTACK_DEGREES, UI_RETICLES_MAX_TARGETS,
-    ui_reticles_blink_interval_seconds, ui_reticles_is_in_range,
-    ui_reticles_is_inside_angle_of_attack, ui_reticles_screen_rect_from_points,
+    UI_RETICLES_ANGLE_OF_ATTACK_DEGREES, UI_RETICLES_MAX_ACTIVE_TARGETS,
+    UI_RETICLES_MAX_OFFSCREEN_TARGETS, UI_RETICLES_OFFSCREEN_RANGE_UNITS,
+    UI_RETICLES_OFFSCREEN_SIZE_PIXELS, UIReticlesScreenRect, ui_reticles_blink_interval_seconds,
+    ui_reticles_edge_center_from_direction, ui_reticles_is_in_range,
+    ui_reticles_is_inside_angle_of_attack, ui_reticles_rect_intersects_viewport,
+    ui_reticles_screen_rect_from_points,
 };
 
 #[test]
@@ -15,7 +18,30 @@ fn ui_reticles_range_includes_enemies_at_threshold() {
 
 #[test]
 fn ui_reticles_targets_one_enemy_for_now() {
-    assert_eq!(UI_RETICLES_MAX_TARGETS, 1);
+    assert_eq!(UI_RETICLES_MAX_ACTIVE_TARGETS, 1);
+}
+
+#[test]
+fn ui_reticles_tracks_ten_offscreen_targets() {
+    assert_eq!(UI_RETICLES_MAX_OFFSCREEN_TARGETS, 10);
+}
+
+#[test]
+fn ui_reticles_offscreen_target_is_quarter_size_box() {
+    assert_eq!(UI_RETICLES_OFFSCREEN_SIZE_PIXELS, 7.0);
+}
+
+#[test]
+fn ui_reticles_offscreen_range_is_one_hundred_units() {
+    assert_eq!(UI_RETICLES_OFFSCREEN_RANGE_UNITS, 100.0);
+    assert!(ui_reticles_is_in_range(
+        100.0,
+        UI_RETICLES_OFFSCREEN_RANGE_UNITS
+    ));
+    assert!(!ui_reticles_is_in_range(
+        100.1,
+        UI_RETICLES_OFFSCREEN_RANGE_UNITS
+    ));
 }
 
 #[test]
@@ -72,4 +98,42 @@ fn ui_reticles_screen_rect_contains_projected_points_with_padding() {
 
     assert_eq!(rect.center, Vec2::new(120.0, 230.0));
     assert_eq!(rect.size, Vec2::new(60.0, 80.0));
+}
+
+#[test]
+fn ui_reticles_detects_rects_inside_viewport() {
+    let viewport = Vec2::new(800.0, 600.0);
+
+    assert!(ui_reticles_rect_intersects_viewport(
+        UIReticlesScreenRect {
+            center: Vec2::new(400.0, 300.0),
+            size: Vec2::new(60.0, 60.0),
+        },
+        viewport,
+    ));
+    assert!(!ui_reticles_rect_intersects_viewport(
+        UIReticlesScreenRect {
+            center: Vec2::new(-100.0, 300.0),
+            size: Vec2::new(60.0, 60.0),
+        },
+        viewport,
+    ));
+}
+
+#[test]
+fn ui_reticles_edge_center_points_toward_nearest_screen_edge() {
+    let viewport = Vec2::new(800.0, 600.0);
+
+    assert_eq!(
+        ui_reticles_edge_center_from_direction(Vec2::X, viewport, 24.0),
+        Some(Vec2::new(776.0, 300.0))
+    );
+    assert_eq!(
+        ui_reticles_edge_center_from_direction(Vec2::new(-1.0, -1.0), viewport, 24.0),
+        Some(Vec2::new(124.0, 24.0))
+    );
+    assert_eq!(
+        ui_reticles_edge_center_from_direction(Vec2::ZERO, viewport, 24.0),
+        None
+    );
 }

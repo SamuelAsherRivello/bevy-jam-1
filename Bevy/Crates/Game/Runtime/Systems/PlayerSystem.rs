@@ -16,26 +16,28 @@ use crate::{
     player_visual_component::PlayerVisualComponent,
 };
 
-// Const values used for player movement (Hot reloadable)
-pub(crate) const PLAYER_START_SPEED: f32 = 5.0;
-pub(crate) const PLAYER_MAX_SPEED: f32 = PLAYER_START_SPEED * 3.0;
-const PLAYER_TIME_TO_MAX_SPEED_SECONDS: f32 = 5.0;
-pub(crate) const PLAYER_BRAKE_MIN_SPEED: f32 = PLAYER_START_SPEED * 0.2;
-const PLAYER_FORWARD_ACCELERATION: f32 =
-    (PLAYER_MAX_SPEED - PLAYER_START_SPEED) / PLAYER_TIME_TO_MAX_SPEED_SECONDS;
-const PLAYER_BRAKE_DECELERATION: f32 = 32.0;
+// Const values used for player movement tuning (Hot reloadable)
+pub(crate) const PLAYER_MIN_SPEED: f32 = 10.0;
+pub(crate) const PLAYER_START_SPEED: f32 = 12.0;
+pub(crate) const PLAYER_MAX_SPEED: f32 = 20.0;
+const PLAYER_ACCELERATION_PER_SECOND: f32 = 11.0;
+const PLAYER_BRAKE_DECELERATION_PERCENT: f32 = 0.005;
+const PLAYER_TURN_DECELERATION_PERCENT: f32 = 0.001;
+
+// Const values derived from player movement tuning
 const PLAYER_BRAKE_REPEAT_INTERVAL_SECONDS: f32 = 0.1;
 const PLAYER_BANK_LEVEL_SPEED: f32 = 1.5;
 const PLAYER_BANK_TILT_SPEED: f32 = 2.5;
 const PLAYER_BANK_TURN_RATE: f32 = 5.0;
-const PLAYER_TURN_DECELERATION: f32 = 0.8;
+const PLAYER_BANK_PERPENDICULAR_PUSH_ACCELERATION: f32 = 0.07875;
+const PLAYER_BANK_PERPENDICULAR_PUSH_MAX: f32 = 0.0504;
 const PLAYER_AUTOPILOT_LEFT_SECONDS: f32 = 3.0;
 const PLAYER_AUTOPILOT_WAIT_SECONDS: f32 = 1.0;
 const PLAYER_AUTOPILOT_RIGHT_SECONDS: f32 = 3.0;
-const PLAYER_MIN_THROTTLE: f32 = 0.1;
+const PLAYER_START_THROTTLE: f32 = PLAYER_START_SPEED / PLAYER_TRAVEL_DIRECTION_MAX_SPEED;
+const PLAYER_MIN_THROTTLE: f32 = PLAYER_MIN_SPEED / PLAYER_TRAVEL_DIRECTION_MAX_SPEED;
 const PLAYER_MODEL_MAX_BANK_DEGREES: f32 = 45.0;
 const PLAYER_TRAVEL_DIRECTION_MAX_SPEED: f32 = PLAYER_MAX_SPEED;
-const PLAYER_TURN_SPEED_FACTOR: f32 = 0.7;
 const PLAYER_VELOCITY_DIRECTION_ALIGNMENT: f32 = 8.0;
 
 // Const values used in update (Hot reloadable)
@@ -54,8 +56,9 @@ fn reset_player_to_start(
     linear_velocity: &mut LinearVelocity,
     angular_velocity: &mut AngularVelocity,
 ) {
-    player.throttle = PLAYER_MIN_THROTTLE;
+    player.throttle = PLAYER_START_THROTTLE;
     player.bank = 0.0;
+    player.lateral_push = 0.0;
     player.turn_entry_speed = None;
     player.brake_repeat_cooldown_seconds = 0.0;
     transform.translation = PLAYER_START_POSITION;
@@ -215,30 +218,34 @@ pub fn player_fixed_update_system(
             player.turn_entry_speed = None;
         }
 
-        let target_speed = if is_brake_pressed {
-            move_toward(
-                current_speed.max(PLAYER_START_SPEED),
-                PLAYER_BRAKE_MIN_SPEED,
-                PLAYER_BRAKE_DECELERATION * time.delta_secs(),
-            )
+        let target_speed = if should_brake_now {
+            let speed_before_brake = current_speed.max(PLAYER_MIN_SPEED);
+            (speed_before_brake - speed_before_brake * PLAYER_BRAKE_DECELERATION_PERCENT)
+                .max(PLAYER_MIN_SPEED)
+        } else if is_brake_pressed {
+            current_speed.max(PLAYER_MIN_SPEED)
         } else if is_turning {
-            let turn_entry_speed = player.turn_entry_speed.unwrap_or(current_speed);
-            move_toward(
-                current_speed.max(PLAYER_START_SPEED),
-                turn_entry_speed * PLAYER_TURN_SPEED_FACTOR,
-                PLAYER_TURN_DECELERATION * time.delta_secs(),
-            )
+            let speed_before_turn = current_speed.max(PLAYER_MIN_SPEED);
+            speed_before_turn - speed_before_turn * PLAYER_TURN_DECELERATION_PERCENT
         } else {
             move_toward(
                 current_speed.max(PLAYER_START_SPEED),
                 PLAYER_MAX_SPEED,
-                PLAYER_FORWARD_ACCELERATION * time.delta_secs(),
+                PLAYER_ACCELERATION_PER_SECOND * time.delta_secs(),
             )
         };
-        let target_speed = target_speed.clamp(PLAYER_BRAKE_MIN_SPEED, PLAYER_MAX_SPEED);
+        let target_speed = target_speed.clamp(PLAYER_MIN_SPEED, PLAYER_MAX_SPEED);
         player.throttle =
             (target_speed / PLAYER_TRAVEL_DIRECTION_MAX_SPEED).max(PLAYER_MIN_THROTTLE);
-        linear_velocity.0 = travel_direction * target_speed;
+        let target_lateral_push = player.bank * PLAYER_BANK_PERPENDICULAR_PUSH_MAX;
+        player.lateral_push = move_toward(
+            player.lateral_push,
+            target_lateral_push,
+            PLAYER_BANK_PERPENDICULAR_PUSH_ACCELERATION * time.delta_secs(),
+        );
+        let pushed_travel_direction =
+            apply_bank_center_lateral_push(travel_direction, player.lateral_push);
+        linear_velocity.0 = pushed_travel_direction * target_speed;
 
         constant_force.0 = Vec3::ZERO;
         constant_torque.0 = Vec3::ZERO;
@@ -303,6 +310,13 @@ fn player_bullet_spawn_position(transform: &Transform, forward: Vec3) -> Vec3 {
     transform.translation
         + forward * BULLET_SPAWN_FORWARD_OFFSET
         + Vec3::Y * BULLET_SPAWN_HEIGHT_OFFSET
+}
+
+fn apply_bank_center_lateral_push(travel_direction: Vec3, lateral_push: f32) -> Vec3 {
+    let perpendicular = Vec3::new(travel_direction.z, 0.0, -travel_direction.x).normalize_or_zero();
+    let pushed_direction = travel_direction - perpendicular * lateral_push;
+
+    pushed_direction.normalize_or_zero()
 }
 
 pub(crate) fn player_autopilot_bank_input(elapsed_seconds: f32) -> f32 {
