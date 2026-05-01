@@ -1,6 +1,7 @@
 use avian3d::prelude::{Gravity, PhysicsDebugPlugin, PhysicsGizmos, PhysicsPlugins};
 use bevy::app::AppExit;
 use bevy::prelude::*;
+use bevy_hanabi::prelude::HanabiPlugin;
 use bevy_simple_subsecond_system as hot_reload;
 use bevy_tweening::TweeningPlugin;
 use hot_reload::prelude::SimpleSubsecondPlugin;
@@ -126,6 +127,14 @@ pub(crate) mod input_component;
 pub(crate) mod input_plugin;
 #[path = "Systems/InputSystem.rs"]
 pub(crate) mod input_system;
+#[path = "Components/ParticleComponent.rs"]
+pub(crate) mod particle_component;
+#[path = "Plugins/ParticlePlugin.rs"]
+pub(crate) mod particle_plugin;
+#[path = "Resources/ParticleResource.rs"]
+pub(crate) mod particle_resource;
+#[path = "Systems/ParticleSystem.rs"]
+pub(crate) mod particle_system;
 #[path = "Bundles/PlayerBundle.rs"]
 pub(crate) mod player_bundle;
 #[path = "Components/PlayerComponent.rs"]
@@ -255,6 +264,9 @@ fn main_hot_reload() -> App {
     // Plugin handles tween animations.
     app.add_plugins(TweeningPlugin);
 
+    // Plugin handles GPU particle rendering.
+    app.add_plugins(HanabiPlugin);
+
     // Shared crate plugins.
     // Plugin handles frame and hot-reload state.
     app.add_plugins(context_plugin::ContextPlugin);
@@ -292,6 +304,9 @@ fn main_hot_reload() -> App {
 
     // Plugin handles enemy spawn and fixed-step autopilot movement.
     app.add_plugins(enemy_plugin::EnemyPlugin);
+
+    // Plugin handles reusable particle effects attached to game entities.
+    app.add_plugins(particle_plugin::ParticlePlugin);
 
     // Plugin handles propeller discovery and rotation.
     app.add_plugins(propeller_plugin::PropellerPlugin);
