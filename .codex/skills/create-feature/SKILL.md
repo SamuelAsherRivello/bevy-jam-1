@@ -21,7 +21,8 @@ description: Create or extend Bevy gameplay features in this repo. Use when Code
 6. Register every new file in `Bevy/Crates/Game/Runtime/Main.rs` with an explicit `#[path = "..."] pub(crate) mod ...;` entry near related modules.
 7. Register the plugin in `main_hot_reload()` with a short section comment matching the local style. Keep `Main.rs` as composition only; put schedule wiring in the plugin.
 8. Add focused tests under `Bevy/Crates/Game/Tests` when the feature has nontrivial behavior, calculations, messages, spawning rules, or regressions the user would care about.
-9. Run formatting and the narrowest useful verification:
+9. Update `.codex/cache/list-features.txt` whenever feature plugins are added, removed, renamed, or their `// Feature:` comments change. Keep the cache sorted by plugin filename and use the same bullet format as the `list-features` skill output.
+10. Run formatting and the narrowest useful verification:
 
 ```powershell
 cargo fmt -p game
@@ -104,5 +105,6 @@ Only annotate update behavior with `#[hot]`. Import `hot` in files that use it.
 - Plugin owns schedule wiring; `Main.rs` does not own feature system wiring.
 - Optional bundle/resource/shader files exist only when justified by the feature.
 - Hot-reloadable update systems use `#[hot]`.
+- `.codex/cache/list-features.txt` reflects any added, removed, renamed, or re-described feature plugins.
 - Tests cover meaningful behavior when added.
 - `cargo fmt -p game` and `cargo check -p game` pass, or failures are reported with exact causes.

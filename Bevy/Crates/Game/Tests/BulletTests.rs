@@ -1,25 +1,24 @@
 use avian3d::prelude::LinearVelocity;
-use bevy::prelude::{
-    App, AudioSource, Handle, Mesh, Messages, StandardMaterial, Transform, Update, Vec3, With,
-};
+use bevy::prelude::{App, Handle, Mesh, Messages, StandardMaterial, Transform, Update, Vec3, With};
 use bevy_tweening::TweenAnim;
 
 use crate::{
+    audio_system::{Audio, AudioPlayMessage},
     bullet_component::BulletComponent,
     bullet_from_enemy_component::BulletFromEnemyComponent,
     bullet_from_player_component::BulletFromPlayerComponent,
-    bullet_resource::{BulletMaterialResource, BulletMeshResource, BulletSpawnSoundResource},
-    bullet_system::{BulletSpawnMessage, BulletSpawnSource, bullet_spawn_update_system},
+    bullet_resource::{BulletMaterialResource, BulletMeshResource},
+    bullet_system::{BulletSpawnMessage, BulletSpawnSource, bullet_spawn_fixed_update_system},
 };
 
 #[test]
 fn bullet_spawn_allows_multiple_bullets_in_air() {
     let mut app = App::new();
     app.add_message::<BulletSpawnMessage>();
-    app.insert_resource(BulletSpawnSoundResource(Handle::<AudioSource>::default()));
+    app.add_message::<AudioPlayMessage>();
     app.insert_resource(BulletMeshResource(Handle::<Mesh>::default()));
     app.insert_resource(BulletMaterialResource(Handle::<StandardMaterial>::default()));
-    app.add_systems(Update, bullet_spawn_update_system);
+    app.add_systems(Update, bullet_spawn_fixed_update_system);
 
     app.world_mut()
         .resource_mut::<Messages<BulletSpawnMessage>>()
@@ -63,6 +62,14 @@ fn bullet_spawn_allows_multiple_bullets_in_air() {
 
     let mut tween_query = app.world_mut().query::<&TweenAnim>();
     assert_eq!(tween_query.iter(app.world()).count(), 2);
+
+    let audio_messages = app.world().resource::<Messages<AudioPlayMessage>>();
+    assert_eq!(audio_messages.len(), 2);
+    assert!(
+        audio_messages
+            .iter_current_update_messages()
+            .all(|message| message.audio == Audio::SHOOT)
+    );
 
     let mut player_bullet_query = app
         .world_mut()

@@ -1,3 +1,4 @@
+use avian3d::prelude::LinearVelocity;
 use bevy::{camera::primitives::Aabb, prelude::*};
 use bevy_simple_subsecond_system as hot_reload;
 use bevy_tweening::EntityCommandsTweeningExtensions;
@@ -11,6 +12,8 @@ use crate::{
 };
 
 const UI_RETICLES_RANGE_UNITS: f32 = 10.0;
+pub(crate) const UI_RETICLES_MAX_TARGETS: usize = 1;
+pub(crate) const UI_RETICLES_ANGLE_OF_ATTACK_DEGREES: f32 = 180.0;
 const UI_RETICLES_PADDING_PIXELS: f32 = 10.0;
 const UI_RETICLES_MIN_SIZE_PIXELS: f32 = 24.0;
 const UI_RETICLES_OUTLINE_WIDTH_PIXELS: f32 = 3.0;
@@ -33,7 +36,7 @@ pub(crate) struct UIReticlesScreenRect {
 pub fn ui_reticles_update_system(
     mut commands: Commands,
     time: Res<Time>,
-    player_query: Query<&GlobalTransform, With<PlayerComponent>>,
+    player_query: Query<(&GlobalTransform, Option<&LinearVelocity>), With<PlayerComponent>>,
     enemy_query: Query<
         (Entity, &GlobalTransform),
         (
@@ -48,7 +51,7 @@ pub fn ui_reticles_update_system(
     mut reticle_query: Query<(Entity, &mut UIReticlesComponent, &mut Node, &mut Visibility)>,
 ) {
     let delta_seconds = time.delta_secs();
-    let Ok(player_transform) = player_query.single() else {
+    let Ok((player_transform, player_velocity)) = player_query.single() else {
         despawn_all_reticles(&mut commands, &reticle_query);
         return;
     };
@@ -57,16 +60,36 @@ pub fn ui_reticles_update_system(
         return;
     };
 
+    let player_position = player_transform.translation();
+    let player_travel_direction =
+        ui_reticles_player_travel_direction(player_transform, player_velocity);
+    let mut active_target_count = 0usize;
+    let mut active_target_entities = Vec::new();
+
     for (reticle_entity, mut reticle, mut node, mut visibility) in &mut reticle_query {
         let Ok((_, enemy_transform)) = enemy_query.get(reticle.target_enemy_entity) else {
             commands.entity(reticle_entity).despawn();
             continue;
         };
 
-        let distance = player_transform
-            .translation()
-            .distance(enemy_transform.translation());
+        let enemy_position = enemy_transform.translation();
+        let distance = player_position.distance(enemy_position);
         if !ui_reticles_is_in_range(distance, UI_RETICLES_RANGE_UNITS) {
+            commands.entity(reticle_entity).despawn();
+            continue;
+        }
+
+        if !ui_reticles_is_inside_angle_of_attack(
+            player_position,
+            player_travel_direction,
+            enemy_position,
+            UI_RETICLES_ANGLE_OF_ATTACK_DEGREES,
+        ) {
+            commands.entity(reticle_entity).despawn();
+            continue;
+        }
+
+        if active_target_count >= UI_RETICLES_MAX_TARGETS {
             commands.entity(reticle_entity).despawn();
             continue;
         }
@@ -83,6 +106,8 @@ pub fn ui_reticles_update_system(
             continue;
         };
 
+        active_target_count += 1;
+        active_target_entities.push(reticle.target_enemy_entity);
         apply_ui_reticles_rect(&mut node, rect);
         reticle.blink_elapsed_seconds += delta_seconds;
         let blink_interval = ui_reticles_blink_interval_seconds(distance, UI_RETICLES_RANGE_UNITS);
@@ -94,17 +119,26 @@ pub fn ui_reticles_update_system(
     }
 
     for (enemy_entity, enemy_transform) in &enemy_query {
-        let distance = player_transform
-            .translation()
-            .distance(enemy_transform.translation());
+        if active_target_count >= UI_RETICLES_MAX_TARGETS {
+            break;
+        }
+
+        let enemy_position = enemy_transform.translation();
+        let distance = player_position.distance(enemy_position);
         if !ui_reticles_is_in_range(distance, UI_RETICLES_RANGE_UNITS) {
             continue;
         }
 
-        if reticle_query
-            .iter()
-            .any(|(_, reticle, _, _)| reticle.target_enemy_entity == enemy_entity)
-        {
+        if !ui_reticles_is_inside_angle_of_attack(
+            player_position,
+            player_travel_direction,
+            enemy_position,
+            UI_RETICLES_ANGLE_OF_ATTACK_DEGREES,
+        ) {
+            continue;
+        }
+
+        if active_target_entities.contains(&enemy_entity) {
             continue;
         }
 
@@ -126,6 +160,8 @@ pub fn ui_reticles_update_system(
             Duration::from_secs_f32(UI_RETICLES_SPAWN_SECONDS),
             EaseFunction::Linear,
         );
+        active_target_count += 1;
+        active_target_entities.push(enemy_entity);
     }
 }
 
@@ -307,6 +343,47 @@ pub(crate) fn ui_reticles_screen_rect_from_points(
 
 pub(crate) fn ui_reticles_is_in_range(distance: f32, range: f32) -> bool {
     distance <= range
+}
+
+fn ui_reticles_player_travel_direction(
+    player_transform: &GlobalTransform,
+    player_velocity: Option<&LinearVelocity>,
+) -> Vec3 {
+    let velocity_direction = player_velocity
+        .map(|velocity| velocity.0.normalize_or_zero())
+        .unwrap_or(Vec3::ZERO);
+
+    if velocity_direction != Vec3::ZERO {
+        velocity_direction
+    } else {
+        player_transform
+            .compute_transform()
+            .rotation
+            .mul_vec3(Vec3::Z)
+            .normalize_or_zero()
+    }
+}
+
+pub(crate) fn ui_reticles_is_inside_angle_of_attack(
+    player_position: Vec3,
+    player_travel_direction: Vec3,
+    enemy_position: Vec3,
+    angle_of_attack_degrees: f32,
+) -> bool {
+    if angle_of_attack_degrees >= 360.0 {
+        return true;
+    }
+
+    let travel_direction = player_travel_direction.normalize_or_zero();
+    let direction_to_enemy = (enemy_position - player_position).normalize_or_zero();
+    if travel_direction == Vec3::ZERO || direction_to_enemy == Vec3::ZERO {
+        return false;
+    }
+
+    let half_angle_radians = (angle_of_attack_degrees * 0.5)
+        .clamp(0.0, 180.0)
+        .to_radians();
+    travel_direction.dot(direction_to_enemy) >= half_angle_radians.cos()
 }
 
 pub(crate) fn ui_reticles_blink_interval_seconds(distance: f32, range: f32) -> f32 {

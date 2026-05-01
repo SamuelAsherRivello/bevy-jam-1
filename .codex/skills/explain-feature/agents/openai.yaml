@@ -1,0 +1,4 @@
+interface:
+  display_name: "Explain Feature"
+  short_description: "Explain one Bevy plugin feature"
+  default_prompt: "Explain the Bevy game feature that maps to the requested runtime plugin."

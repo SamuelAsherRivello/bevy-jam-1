@@ -7,6 +7,9 @@ use hot_reload::prelude::SimpleSubsecondPlugin;
 use shared::{bevy_inspector_plugin, context_plugin, custom_window_plugin, custom_window_resource};
 
 #[cfg(test)]
+#[path = "../Tests/AudioTests.rs"]
+mod audio_tests;
+#[cfg(test)]
 #[path = "../Tests/AutopilotTests.rs"]
 mod autopilot_tests;
 #[cfg(test)]
@@ -51,6 +54,12 @@ fn game_asset_root_path() -> String {
 }
 
 // Modules: game-owned components, resources, and systems.
+#[path = "Plugins/AudioPlugin.rs"]
+pub(crate) mod audio_plugin;
+#[path = "Resources/AudioResource.rs"]
+pub(crate) mod audio_resource;
+#[path = "Systems/AudioSystem.rs"]
+pub(crate) mod audio_system;
 #[path = "Utilities/AutopilotUtility.rs"]
 pub(crate) mod autopilot_utility;
 #[path = "Components/BulletComponent.rs"]
@@ -95,13 +104,13 @@ pub(crate) mod enemy_system;
 pub(crate) mod enemy_texture_tint_component;
 #[path = "Components/EnemyVisualComponent.rs"]
 pub(crate) mod enemy_visual_component;
-#[path = "Components/GameSceneComponent.rs"]
+#[path = "Scenes/GameSceneComponent.rs"]
 pub(crate) mod game_scene_component;
-#[path = "Plugins/GameScenePlugin.rs"]
+#[path = "Scenes/GameScenePlugin.rs"]
 pub(crate) mod game_scene_plugin;
-#[path = "Resources/GameSceneResource.rs"]
+#[path = "Scenes/GameSceneResource.rs"]
 pub(crate) mod game_scene_resource;
-#[path = "Systems/GameSceneSystem.rs"]
+#[path = "Scenes/GameSceneSystem.rs"]
 pub(crate) mod game_scene_system;
 #[path = "Components/HealthComponent.rs"]
 pub(crate) mod health_component;
@@ -115,8 +124,6 @@ pub(crate) mod health_system;
 pub(crate) mod input_component;
 #[path = "Plugins/InputPlugin.rs"]
 pub(crate) mod input_plugin;
-#[path = "Resources/InputResource.rs"]
-pub(crate) mod input_resource;
 #[path = "Systems/InputSystem.rs"]
 pub(crate) mod input_system;
 #[path = "Bundles/PlayerBundle.rs"]
@@ -259,6 +266,9 @@ fn main_hot_reload() -> App {
     app.add_plugins(bevy_inspector_plugin::BevyInspectorPlugin);
 
     // Game crate plugins.
+    // Plugin handles shared sound-effect playback.
+    app.add_plugins(audio_plugin::AudioPlugin);
+
     // Plugin handles the reloadable game scene root.
     app.add_plugins(game_scene_plugin::GameScenePlugin);
 
@@ -277,10 +287,10 @@ fn main_hot_reload() -> App {
     // Plugin handles keyboard input state and updates.
     app.add_plugins(input_plugin::InputPlugin);
 
-    // Plugin handles player spawn and movement updates.
+    // Plugin handles player spawn and fixed-step movement.
     app.add_plugins(player_plugin::PlayerPlugin);
 
-    // Plugin handles enemy spawn and autopilot movement.
+    // Plugin handles enemy spawn and fixed-step autopilot movement.
     app.add_plugins(enemy_plugin::EnemyPlugin);
 
     // Plugin handles propeller discovery and rotation.
@@ -295,7 +305,7 @@ fn main_hot_reload() -> App {
     // Plugin handles bullet spawn, movement, and despawn updates.
     app.add_plugins(bullet_plugin::BulletPlugin);
 
-    // Plugin handles health damage and death cleanup.
+    // Plugin handles fixed-step health damage and death cleanup.
     app.add_plugins(health_plugin::HealthPlugin);
 
     // Plugin handles in-window content rebuilds.

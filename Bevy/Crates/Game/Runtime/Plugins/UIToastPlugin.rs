@@ -6,7 +6,7 @@ use crate::{
     ui_toast_system::{UIToastSpawnMessage, ui_toast_spawn_update_system, ui_toast_update_system},
 };
 
-// Plugin handles top-center UI toast messages.
+// Feature: Top-center UI toast message queuing, spawning, and lifetime updates.
 pub struct UIToastPlugin;
 
 impl Plugin for UIToastPlugin {

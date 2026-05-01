@@ -18,7 +18,7 @@ fast-hot-reload = ["bevy/dynamic_linking"]
 
 [dependencies]
 avian3d = "0.6"
-bevy = { version = "0.18.1", features = ["ghost_nodes", "jpeg", "wav"] }
+bevy = { version = "0.18.1", features = ["ghost_nodes", "jpeg", "mp3", "wav"] }
 bevy-inspector-egui = "0.36.0"
 bevy_simple_subsecond_system = { path = "../Shared/Runtime/3rdParty/bevy_simple_subsecond_system" }
 bevy_tweening = "0.15"

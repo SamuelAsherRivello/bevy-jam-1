@@ -6,6 +6,7 @@ This folder is for Codex context that should travel with this repository.
 
 - `memories/` - durable project notes for future Codex sessions.
 - `skills/` - repo-specific skills. Add each skill in its own folder with a `SKILL.md` entrypoint.
+- `cache/` - repo-specific text caches used by skills for fast repeated answers.
 
 ## Skill Shape
 

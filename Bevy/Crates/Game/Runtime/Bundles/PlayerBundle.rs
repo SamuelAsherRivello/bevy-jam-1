@@ -1,12 +1,13 @@
 use avian3d::prelude::{
     AngularDamping, AngularVelocity, Collider, ConstantForce, ConstantTorque, GravityScale,
-    LinearDamping, LinearVelocity, LockedAxes, RigidBody,
+    LinearDamping, LinearVelocity, LockedAxes, RigidBody, TransformInterpolation,
 };
 use bevy::prelude::*;
 
 use crate::{
     health_component::HealthComponent, player_component::PlayerComponent,
-    player_visual_component::PlayerVisualComponent, reset_game_component::ResetGameComponent,
+    player_system::PLAYER_START_SPEED, player_visual_component::PlayerVisualComponent,
+    reset_game_component::ResetGameComponent,
 };
 
 const PLAYER_COLLIDER_SIZE: Vec3 = Vec3::new(1.0, 2.0, 1.0);
@@ -25,6 +26,7 @@ const PLAYER_LINEAR_DAMPING: f32 = 0.0;
 pub struct PlayerBundle {
     name: Name,
     transform: Transform,
+    transform_interpolation: TransformInterpolation,
     rigid_body: RigidBody,
     collider: Collider,
     locked_axes: LockedAxes,
@@ -46,6 +48,7 @@ impl PlayerBundle {
             name: Name::new("Player"),
             transform: Transform::from_translation(PLAYER_START_POSITION)
                 .with_scale(Vec3::splat(PLAYER_BASE_SCALE)),
+            transform_interpolation: TransformInterpolation,
             rigid_body: RigidBody::Dynamic,
             collider: Collider::cuboid(
                 PLAYER_COLLIDER_SIZE.x,
@@ -58,7 +61,7 @@ impl PlayerBundle {
             angular_damping: AngularDamping(PLAYER_ANGULAR_DAMPING),
             constant_force: ConstantForce(Vec3::ZERO),
             constant_torque: ConstantTorque(Vec3::ZERO),
-            linear_velocity: LinearVelocity(Vec3::ZERO),
+            linear_velocity: LinearVelocity(Vec3::Z * PLAYER_START_SPEED),
             angular_velocity: AngularVelocity(Vec3::ZERO),
             player: PlayerComponent::default(),
             health: HealthComponent::full(),
@@ -72,6 +75,7 @@ pub struct PlayerVisualPivotBundle {
     name: Name,
     visual: PlayerVisualComponent,
     transform: Transform,
+    transform_interpolation: TransformInterpolation,
 }
 
 impl PlayerVisualPivotBundle {
@@ -80,6 +84,7 @@ impl PlayerVisualPivotBundle {
             name: Name::new("Player Visual Pivot"),
             visual: PlayerVisualComponent,
             transform: Transform::from_translation(PLAYER_MODEL_OFFSET),
+            transform_interpolation: TransformInterpolation,
         }
     }
 }

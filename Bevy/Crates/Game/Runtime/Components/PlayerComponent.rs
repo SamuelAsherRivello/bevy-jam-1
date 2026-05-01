@@ -7,6 +7,8 @@ pub struct PlayerComponent {
     pub throttle: f32,
     /// Current visual/steering bank from full left (-1.0) to full right (1.0).
     pub bank: f32,
+    /// Speed captured when a turn begins so turn slowdown has a stable target.
+    pub turn_entry_speed: Option<f32>,
     /// Remaining cooldown before held brake can apply another brake step.
     pub brake_repeat_cooldown_seconds: f32,
     /// Remaining cooldown before held fire can spawn another bullet.
@@ -20,6 +22,7 @@ impl Default for PlayerComponent {
         Self {
             throttle: 0.1,
             bank: 0.0,
+            turn_entry_speed: None,
             brake_repeat_cooldown_seconds: 0.0,
             bullet_fire_cooldown_seconds: 0.0,
             bullet_repeat_unlock_delay_seconds: 0.0,

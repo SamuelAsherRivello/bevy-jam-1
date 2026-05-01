@@ -15,8 +15,8 @@ use crate::{
         enemy_autopilot_duration, enemy_autopilot_pattern, enemy_translation,
     },
     enemy_system::{
-        enemy_is_green_pixel, enemy_tint_color_to_red, enemy_tint_green_pixels_to_red,
-        enemy_update_system,
+        enemy_fixed_update_system, enemy_is_green_pixel, enemy_tint_color_to_red,
+        enemy_tint_green_pixels_to_red,
     },
     enemy_visual_component::EnemyVisualComponent,
 };
@@ -58,7 +58,7 @@ fn enemy_autopilot_pattern_uses_idle_left_idle_right_order() {
 }
 
 #[test]
-fn enemy_update_uses_autopilot_pattern_to_turn() {
+fn enemy_fixed_update_uses_autopilot_pattern_to_turn() {
     let pattern = AutopilotPattern::new(
         autopilot_command(1.0, 10.0),
         autopilot_command(0.0, 1.0),
@@ -69,7 +69,7 @@ fn enemy_update_uses_autopilot_pattern_to_turn() {
     let mut time = Time::<()>::default();
     time.advance_by(Duration::from_secs_f32(0.4));
     app.insert_resource(time);
-    app.add_systems(Update, enemy_update_system);
+    app.add_systems(Update, enemy_fixed_update_system);
 
     let enemy_entity = app
         .world_mut()

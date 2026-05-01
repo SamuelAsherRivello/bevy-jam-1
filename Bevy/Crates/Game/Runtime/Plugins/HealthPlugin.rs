@@ -1,15 +1,22 @@
-use bevy::prelude::{App, Plugin, Update};
+use bevy::prelude::{App, FixedUpdate, Plugin};
 
-use crate::health_system::{health_damage_update_system, health_death_update_system};
+use crate::health_system::{
+    health_damage_fixed_update_system, health_death_fixed_update_system,
+    health_regen_fixed_update_system,
+};
 
-// Plugin handles health damage and death cleanup.
+// Feature: Fixed-step health damage, regeneration, and death cleanup.
 pub struct HealthPlugin;
 
 impl Plugin for HealthPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
-            Update,
-            (health_damage_update_system, health_death_update_system),
+            FixedUpdate,
+            (
+                health_damage_fixed_update_system,
+                health_regen_fixed_update_system,
+                health_death_fixed_update_system,
+            ),
         );
     }
 }

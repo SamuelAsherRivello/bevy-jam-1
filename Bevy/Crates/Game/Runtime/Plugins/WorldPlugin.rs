@@ -2,7 +2,7 @@ use bevy::prelude::{App, Plugin, Startup, Update};
 
 use crate::{cloud_system::cloud_update_system, world_system::world_startup_system};
 
-// Plugin handles camera, lights, terrain, and world setup.
+// Feature: World camera, lighting, terrain, and ambient cloud updates.
 pub struct WorldPlugin;
 
 impl Plugin for WorldPlugin {

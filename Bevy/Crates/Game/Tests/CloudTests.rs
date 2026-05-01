@@ -76,9 +76,9 @@ fn background_cloud_scale_flattens_clouds_on_y_axis() {
     let minimum_scale = background_cloud_scale(0.0);
     let maximum_scale = background_cloud_scale(1.0);
 
-    assert_eq!(minimum_scale.y, minimum_scale.x * 0.3);
+    assert_eq!(minimum_scale.y, minimum_scale.x * 0.45);
     assert_eq!(minimum_scale.z, minimum_scale.x);
-    assert_eq!(maximum_scale.y, maximum_scale.x * 0.3);
+    assert_eq!(maximum_scale.y, maximum_scale.x * 0.45);
     assert_eq!(maximum_scale.z, maximum_scale.x);
 }
 

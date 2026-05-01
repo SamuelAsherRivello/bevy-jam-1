@@ -17,27 +17,32 @@ use crate::{
 };
 
 // Const values used for player movement (Hot reloadable)
-const PLAYER_FORWARD_ACCELERATION: f32 = 1.25;
-const PLAYER_BRAKE_DECELERATION: f32 = 12.0;
+pub(crate) const PLAYER_START_SPEED: f32 = 5.0;
+pub(crate) const PLAYER_MAX_SPEED: f32 = PLAYER_START_SPEED * 3.0;
+const PLAYER_TIME_TO_MAX_SPEED_SECONDS: f32 = 5.0;
+pub(crate) const PLAYER_BRAKE_MIN_SPEED: f32 = PLAYER_START_SPEED * 0.2;
+const PLAYER_FORWARD_ACCELERATION: f32 =
+    (PLAYER_MAX_SPEED - PLAYER_START_SPEED) / PLAYER_TIME_TO_MAX_SPEED_SECONDS;
+const PLAYER_BRAKE_DECELERATION: f32 = 32.0;
 const PLAYER_BRAKE_REPEAT_INTERVAL_SECONDS: f32 = 0.1;
 const PLAYER_BANK_LEVEL_SPEED: f32 = 1.5;
 const PLAYER_BANK_TILT_SPEED: f32 = 2.5;
 const PLAYER_BANK_TURN_RATE: f32 = 5.0;
+const PLAYER_TURN_DECELERATION: f32 = 0.8;
 const PLAYER_AUTOPILOT_LEFT_SECONDS: f32 = 3.0;
 const PLAYER_AUTOPILOT_WAIT_SECONDS: f32 = 1.0;
 const PLAYER_AUTOPILOT_RIGHT_SECONDS: f32 = 3.0;
-const PLAYER_FULL_BANK_ACCELERATION_FACTOR: f32 = 0.35;
 const PLAYER_MIN_THROTTLE: f32 = 0.1;
 const PLAYER_MODEL_MAX_BANK_DEGREES: f32 = 45.0;
-pub(crate) const PLAYER_TRAVEL_DIRECTION_MIN_SPEED: f32 = 8.0;
-const PLAYER_TRAVEL_DIRECTION_MAX_SPEED: f32 = 20.0;
+const PLAYER_TRAVEL_DIRECTION_MAX_SPEED: f32 = PLAYER_MAX_SPEED;
+const PLAYER_TURN_SPEED_FACTOR: f32 = 0.7;
 const PLAYER_VELOCITY_DIRECTION_ALIGNMENT: f32 = 8.0;
 
 // Const values used in update (Hot reloadable)
 const BULLET_REPEAT_FIRE_INTERVAL_SECONDS: f32 = 0.1;
 const BULLET_REPEAT_UNLOCK_DELAY_SECONDS: f32 = 0.5;
-const BULLET_SPAWN_FORWARD_OFFSET: f32 = 0.9;
-const BULLET_SPAWN_HEIGHT_OFFSET: f32 = 0.12;
+const BULLET_SPAWN_FORWARD_OFFSET: f32 = 1.2;
+const BULLET_SPAWN_HEIGHT_OFFSET: f32 = 0.28;
 
 const PLAYER_FALL_RESET_Y: f32 = -5.0;
 
@@ -51,12 +56,13 @@ fn reset_player_to_start(
 ) {
     player.throttle = PLAYER_MIN_THROTTLE;
     player.bank = 0.0;
+    player.turn_entry_speed = None;
     player.brake_repeat_cooldown_seconds = 0.0;
     transform.translation = PLAYER_START_POSITION;
     transform.rotation = Quat::IDENTITY;
     constant_force.0 = Vec3::ZERO;
     constant_torque.0 = Vec3::ZERO;
-    linear_velocity.0 = Vec3::ZERO;
+    linear_velocity.0 = Vec3::Z * PLAYER_START_SPEED;
     angular_velocity.0 = Vec3::ZERO;
 }
 
@@ -94,8 +100,8 @@ pub fn player_startup_system(world: &mut World) {
 }
 
 #[hot]
-// System handles the movement and shooting of the player entity.
-pub fn player_update_system(
+// System handles the fixed-step movement and shooting of the player entity.
+pub fn player_fixed_update_system(
     time: Res<Time>,
     input_query: Query<&InputComponent>,
     mut spawn_bullet_messages: MessageWriter<BulletSpawnMessage>,
@@ -202,23 +208,34 @@ pub fn player_update_system(
             travel_direction
         };
 
-        let bank_strength = player.bank.abs();
-        let acceleration_factor =
-            1.0 - bank_strength * (1.0 - PLAYER_FULL_BANK_ACCELERATION_FACTOR);
-        let acceleration_delta =
-            PLAYER_FORWARD_ACCELERATION * acceleration_factor * time.delta_secs();
-        let brake_delta = if is_brake_pressed {
-            PLAYER_BRAKE_DECELERATION * time.delta_secs()
+        let is_turning = bank_input != 0.0;
+        if is_turning && player.turn_entry_speed.is_none() {
+            player.turn_entry_speed = Some(current_speed.max(PLAYER_START_SPEED));
+        } else if !is_turning {
+            player.turn_entry_speed = None;
+        }
+
+        let target_speed = if is_brake_pressed {
+            move_toward(
+                current_speed.max(PLAYER_START_SPEED),
+                PLAYER_BRAKE_MIN_SPEED,
+                PLAYER_BRAKE_DECELERATION * time.delta_secs(),
+            )
+        } else if is_turning {
+            let turn_entry_speed = player.turn_entry_speed.unwrap_or(current_speed);
+            move_toward(
+                current_speed.max(PLAYER_START_SPEED),
+                turn_entry_speed * PLAYER_TURN_SPEED_FACTOR,
+                PLAYER_TURN_DECELERATION * time.delta_secs(),
+            )
         } else {
-            0.0
+            move_toward(
+                current_speed.max(PLAYER_START_SPEED),
+                PLAYER_MAX_SPEED,
+                PLAYER_FORWARD_ACCELERATION * time.delta_secs(),
+            )
         };
-        let minimum_speed = if current_speed > 0.0 || is_brake_pressed {
-            PLAYER_TRAVEL_DIRECTION_MIN_SPEED
-        } else {
-            0.0
-        };
-        let target_speed = (current_speed + acceleration_delta - brake_delta)
-            .clamp(minimum_speed, PLAYER_TRAVEL_DIRECTION_MAX_SPEED);
+        let target_speed = target_speed.clamp(PLAYER_BRAKE_MIN_SPEED, PLAYER_MAX_SPEED);
         player.throttle =
             (target_speed / PLAYER_TRAVEL_DIRECTION_MAX_SPEED).max(PLAYER_MIN_THROTTLE);
         linear_velocity.0 = travel_direction * target_speed;
@@ -237,12 +254,8 @@ pub fn player_update_system(
         let is_shoot_just_pressed = is_player_keyboard_enabled && input.is_shoot_just_pressed;
 
         if is_shoot_just_pressed {
-            let spawn_position = transform.translation
-                + forward * BULLET_SPAWN_FORWARD_OFFSET
-                + Vec3::Y * BULLET_SPAWN_HEIGHT_OFFSET;
-
             spawn_bullet_messages.write(BulletSpawnMessage {
-                position: spawn_position,
+                position: player_bullet_spawn_position(&transform, forward),
                 direction: forward,
                 forward_speed_units_per_second: linear_velocity.0.dot(forward).max(0.0),
                 source: BulletSpawnSource::BulletFromPlayer,
@@ -258,12 +271,8 @@ pub fn player_update_system(
             && player.bullet_fire_cooldown_seconds <= 0.0;
 
         if should_repeat_fire {
-            let spawn_position = transform.translation
-                + forward * BULLET_SPAWN_FORWARD_OFFSET
-                + Vec3::Y * BULLET_SPAWN_HEIGHT_OFFSET;
-
             spawn_bullet_messages.write(BulletSpawnMessage {
-                position: spawn_position,
+                position: player_bullet_spawn_position(&transform, forward),
                 direction: forward,
                 forward_speed_units_per_second: linear_velocity.0.dot(forward).max(0.0),
                 source: BulletSpawnSource::BulletFromPlayer,
@@ -280,6 +289,20 @@ fn move_toward_zero(value: f32, step: f32) -> f32 {
     } else {
         (value + step).min(0.0)
     }
+}
+
+fn move_toward(value: f32, target: f32, step: f32) -> f32 {
+    if value < target {
+        (value + step).min(target)
+    } else {
+        (value - step).max(target)
+    }
+}
+
+fn player_bullet_spawn_position(transform: &Transform, forward: Vec3) -> Vec3 {
+    transform.translation
+        + forward * BULLET_SPAWN_FORWARD_OFFSET
+        + Vec3::Y * BULLET_SPAWN_HEIGHT_OFFSET
 }
 
 pub(crate) fn player_autopilot_bank_input(elapsed_seconds: f32) -> f32 {

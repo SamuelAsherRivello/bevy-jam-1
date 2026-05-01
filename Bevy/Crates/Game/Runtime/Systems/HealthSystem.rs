@@ -7,21 +7,26 @@ use hot_reload::prelude::hot;
 use std::time::Duration;
 
 use crate::{
-    bullet_component::BulletComponent, bullet_from_enemy_component::BulletFromEnemyComponent,
-    bullet_from_player_component::BulletFromPlayerComponent, enemy_component::EnemyComponent,
-    health_component::HealthComponent, health_dying_component::HealthDyingComponent,
+    audio_system::{Audio, AudioPlayMessage},
+    bullet_component::BulletComponent,
+    bullet_from_enemy_component::BulletFromEnemyComponent,
+    bullet_from_player_component::BulletFromPlayerComponent,
+    enemy_component::EnemyComponent,
+    health_component::HealthComponent,
+    health_dying_component::HealthDyingComponent,
     player_component::PlayerComponent,
 };
 
-const HEALTH_PLAYER_BULLET_DAMAGE_PERCENT: f32 = 100.0;
-const HEALTH_ENEMY_BULLET_DAMAGE_PERCENT: f32 = 100.0;
+const HEALTH_PLAYER_BULLET_DAMAGE_PERCENT: f32 = 35.0;
+const HEALTH_ENEMY_BULLET_DAMAGE_PERCENT: f32 = 35.0;
 const HEALTH_DEATH_SHRINK_SECONDS: f32 = 0.25;
 
 #[hot]
-// System handles bullet damage against health-bearing targets.
-pub fn health_damage_update_system(
+// System handles fixed-step bullet damage against health-bearing targets.
+pub fn health_damage_fixed_update_system(
     mut commands: Commands,
     mut collision_start_messages: MessageReader<CollisionStart>,
+    mut audio_messages: MessageWriter<AudioPlayMessage>,
     player_bullet_query: Query<(), (With<BulletComponent>, With<BulletFromPlayerComponent>)>,
     enemy_bullet_query: Query<(), (With<BulletComponent>, With<BulletFromEnemyComponent>)>,
     mut enemy_health_query: Query<
@@ -50,6 +55,7 @@ pub fn health_damage_update_system(
             &enemy_bullet_query,
             &mut enemy_health_query,
             &mut player_health_query,
+            &mut audio_messages,
         );
         handle_health_collision(
             &mut commands,
@@ -59,13 +65,27 @@ pub fn health_damage_update_system(
             &enemy_bullet_query,
             &mut enemy_health_query,
             &mut player_health_query,
+            &mut audio_messages,
         );
     }
 }
 
 #[hot]
-// System deletes entities after their death shrink animation has completed.
-pub fn health_death_update_system(
+// System slowly regenerates health-bearing entities that are still alive.
+pub fn health_regen_fixed_update_system(
+    time: Res<Time>,
+    mut health_query: Query<&mut HealthComponent, Without<HealthDyingComponent>>,
+) {
+    for mut health in &mut health_query {
+        health.health_percent = (health.health_percent
+            + health.regen_percent_per_second * time.delta_secs())
+        .min(100.0);
+    }
+}
+
+#[hot]
+// System deletes entities during fixed-step cleanup after their death animation has completed.
+pub fn health_death_fixed_update_system(
     mut commands: Commands,
     time: Res<Time>,
     mut dying_query: Query<(Entity, &mut HealthDyingComponent)>,
@@ -101,6 +121,7 @@ fn handle_health_collision(
             Without<HealthDyingComponent>,
         ),
     >,
+    audio_messages: &mut MessageWriter<AudioPlayMessage>,
 ) {
     if player_bullet_query.get(bullet_entity).is_ok() {
         damage_target(
@@ -109,6 +130,7 @@ fn handle_health_collision(
             target_entity,
             HEALTH_PLAYER_BULLET_DAMAGE_PERCENT,
             enemy_health_query,
+            Some(audio_messages),
         );
         return;
     }
@@ -120,6 +142,7 @@ fn handle_health_collision(
             target_entity,
             HEALTH_ENEMY_BULLET_DAMAGE_PERCENT,
             player_health_query,
+            None,
         );
     }
 }
@@ -130,6 +153,7 @@ fn damage_target<F>(
     target_entity: Entity,
     damage_percent: f32,
     health_query: &mut Query<&mut HealthComponent, F>,
+    audio_messages: Option<&mut MessageWriter<AudioPlayMessage>>,
 ) where
     F: QueryFilter,
 {
@@ -144,6 +168,9 @@ fn damage_target<F>(
     commands.entity(bullet_entity).despawn();
 
     if should_die {
+        if let Some(audio_messages) = audio_messages {
+            audio_messages.write(AudioPlayMessage::new(Audio::HIT));
+        }
         commands.entity(target_entity).insert(HealthDyingComponent {
             elapsed_seconds: 0.0,
             despawn_after_seconds: HEALTH_DEATH_SHRINK_SECONDS,

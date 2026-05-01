@@ -1,8 +1,9 @@
 use bevy::prelude::*;
 
 use crate::ui_reticles_system::{
+    UI_RETICLES_ANGLE_OF_ATTACK_DEGREES, UI_RETICLES_MAX_TARGETS,
     ui_reticles_blink_interval_seconds, ui_reticles_is_in_range,
-    ui_reticles_screen_rect_from_points,
+    ui_reticles_is_inside_angle_of_attack, ui_reticles_screen_rect_from_points,
 };
 
 #[test]
@@ -10,6 +11,42 @@ fn ui_reticles_range_includes_enemies_at_threshold() {
     assert!(ui_reticles_is_in_range(9.9, 10.0));
     assert!(ui_reticles_is_in_range(10.0, 10.0));
     assert!(!ui_reticles_is_in_range(10.1, 10.0));
+}
+
+#[test]
+fn ui_reticles_targets_one_enemy_for_now() {
+    assert_eq!(UI_RETICLES_MAX_TARGETS, 1);
+}
+
+#[test]
+fn ui_reticles_default_angle_of_attack_is_front_hemisphere() {
+    assert_eq!(UI_RETICLES_ANGLE_OF_ATTACK_DEGREES, 180.0);
+
+    let player_position = Vec3::ZERO;
+    let travel_direction = Vec3::Z;
+
+    assert!(ui_reticles_is_inside_angle_of_attack(
+        player_position,
+        travel_direction,
+        Vec3::new(0.0, 0.0, 5.0),
+        UI_RETICLES_ANGLE_OF_ATTACK_DEGREES,
+    ));
+    assert!(!ui_reticles_is_inside_angle_of_attack(
+        player_position,
+        travel_direction,
+        Vec3::new(0.0, 0.0, -5.0),
+        UI_RETICLES_ANGLE_OF_ATTACK_DEGREES,
+    ));
+}
+
+#[test]
+fn ui_reticles_full_angle_of_attack_accepts_enemy_behind_player() {
+    assert!(ui_reticles_is_inside_angle_of_attack(
+        Vec3::ZERO,
+        Vec3::Z,
+        Vec3::new(0.0, 0.0, -5.0),
+        360.0,
+    ));
 }
 
 #[test]

@@ -1,14 +1,13 @@
 use bevy::{ecs::system::RunSystemOnce, prelude::*};
 
 use crate::{
-    bullet_resource::{BulletMaterialResource, BulletMeshResource, BulletSpawnSoundResource},
+    bullet_resource::{BulletMaterialResource, BulletMeshResource},
     bullet_system::bullet_startup_system,
     enemy_system::enemy_startup_system,
     game_scene_component::GameSceneComponent,
     game_scene_resource::GameSceneResource,
     game_scene_system::spawn_game_scene,
     input_component::InputComponent,
-    input_resource::InputClickSoundResource,
     input_system::input_startup_system,
     player_system::player_startup_system,
     ui_hud_resource::UIHUDTextResource,
@@ -16,8 +15,8 @@ use crate::{
     world_system::world_startup_system,
 };
 
-// System handles the in-window ResetGame rebuild of game-owned content.
-pub fn reset_game_update_system(world: &mut World) {
+// System handles the fixed-step in-window ResetGame rebuild of game-owned content.
+pub fn reset_game_fixed_update_system(world: &mut World) {
     let should_reset_game = {
         let mut input_query = world.query::<&InputComponent>();
         input_query
@@ -41,10 +40,8 @@ pub fn reset_game_update_system(world: &mut World) {
     world.resource_mut::<GameSceneResource>().entity = None;
 
     world.insert_resource(UIHUDTextResource::default());
-    world.remove_resource::<BulletSpawnSoundResource>();
     world.remove_resource::<BulletMeshResource>();
     world.remove_resource::<BulletMaterialResource>();
-    world.remove_resource::<InputClickSoundResource>();
 
     spawn_game_scene(world);
     let _ = world.run_system_once(ui_hud_startup_system);

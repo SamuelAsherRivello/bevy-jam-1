@@ -70,8 +70,8 @@ pub fn enemy_texture_tint_system(
 }
 
 #[hot]
-// System handles enemy autopilot movement.
-pub fn enemy_update_system(
+// System handles fixed-step enemy autopilot movement.
+pub fn enemy_fixed_update_system(
     time: Res<Time>,
     mut enemy_query: Query<
         (

@@ -1,0 +1,14 @@
+- AudioPlugin: Shared sound-effect playback for game systems that emit audio messages.
+- BulletPlugin: Fixed-step bullet spawning, motion, terrain collision, and despawning.
+- CameraAdvancedPlugin: Main camera target following and look-at behavior.
+- EnemyPlugin: Enemy spawning, visual tinting, and fixed-step autopilot movement.
+- HealthPlugin: Fixed-step health damage, regeneration, and death cleanup.
+- InputPlugin: Keyboard and mouse input state captured before fixed gameplay updates.
+- PlayerPlugin: Player spawning and fixed-step flight movement.
+- PropellerPlugin: Propeller node discovery and rotation animation updates.
+- ResetGamePlugin: In-window game-owned content rebuilding after ResetGame requests.
+- UIHUDPlugin: On-screen HUD status text and responsive HUD scaling.
+- UIMiniMapPlugin: Top-down mini-map camera, viewport, and viewport toggle behavior.
+- UIReticlesPlugin: Screen-space enemy reticles for nearby off-center targets.
+- UIToastPlugin: Top-center UI toast message queuing, spawning, and lifetime updates.
+- WorldPlugin: World camera, lighting, terrain, and ambient cloud updates.

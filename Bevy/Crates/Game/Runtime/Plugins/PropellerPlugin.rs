@@ -2,7 +2,7 @@ use bevy::prelude::{App, IntoScheduleConfigs, Plugin, Update};
 
 use crate::propeller_system::{propeller_register_update_system, propeller_update_system};
 
-// Plugin handles propeller node discovery and rotation updates.
+// Feature: Propeller node discovery and rotation animation updates.
 pub struct PropellerPlugin;
 
 impl Plugin for PropellerPlugin {
