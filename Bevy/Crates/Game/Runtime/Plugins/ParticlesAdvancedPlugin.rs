@@ -3,7 +3,7 @@ use bevy::prelude::{App, IntoScheduleConfigs, Plugin, Startup, Update};
 use crate::{
     enemy_system::enemy_startup_system,
     particles_advanced_system::{
-        particles_advanced_attach_system, particles_advanced_startup_system,
+        particles_advanced_attach_update_system, particles_advanced_startup_system,
     },
     player_system::player_startup_system,
 };
@@ -16,7 +16,7 @@ impl Plugin for ParticlesAdvancedPlugin {
         app.add_systems(Startup, particles_advanced_startup_system)
             .add_systems(
                 Update,
-                particles_advanced_attach_system
+                particles_advanced_attach_update_system
                     .after(player_startup_system)
                     .after(enemy_startup_system),
             );

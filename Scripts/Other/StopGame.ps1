@@ -26,7 +26,7 @@ foreach ($ProcessName in $ProcessNames) {
 # Stop shells that are actively running the hot-reload scripts/commands so they do not respawn child processes.
 $HostProcessNames = @("powershell.exe", "pwsh.exe")
 $HostCommandLinePatterns = @(
-    "RunGameWithHotReload.ps1",
+    "RunGameDesktopWithHotReload.ps1",
     "RunGameWeb.ps1",
     "RunProjectWithHotReload.ps1",
     "dx serve"

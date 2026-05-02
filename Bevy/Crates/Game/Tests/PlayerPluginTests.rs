@@ -14,7 +14,7 @@ use crate::{
     player_component::PlayerComponent,
     player_system::{
         PLAYER_MAX_SPEED, PLAYER_MIN_SPEED, PLAYER_START_SPEED, player_autopilot_bank_input,
-        player_fixed_update_system,
+        player_update_system,
     },
 };
 
@@ -68,8 +68,8 @@ fn player_bundle_interpolates_fixed_step_motion() {
 }
 
 #[test]
-fn player_fixed_update_starts_forward_without_input() {
-    let result = run_player_fixed_update(
+fn player_update_starts_forward_without_input() {
+    let result = run_player_update(
         InputComponent::default(),
         PlayerComponent::default(),
         0.0,
@@ -83,8 +83,8 @@ fn player_fixed_update_starts_forward_without_input() {
 }
 
 #[test]
-fn player_fixed_update_accelerates_forward_without_braking() {
-    let result = run_player_fixed_update(
+fn player_update_accelerates_forward_without_braking() {
+    let result = run_player_update(
         InputComponent::default(),
         PlayerComponent::default(),
         3.0,
@@ -98,8 +98,8 @@ fn player_fixed_update_accelerates_forward_without_braking() {
 }
 
 #[test]
-fn player_fixed_update_reaches_max_speed_after_five_seconds() {
-    let result = run_player_fixed_update(
+fn player_update_reaches_max_speed_after_five_seconds() {
+    let result = run_player_update(
         InputComponent::default(),
         PlayerComponent::default(),
         5.0,
@@ -112,9 +112,9 @@ fn player_fixed_update_reaches_max_speed_after_five_seconds() {
 }
 
 #[test]
-fn player_fixed_update_brake_tap_reduces_throttle_and_current_velocity() {
+fn player_update_brake_tap_reduces_throttle_and_current_velocity() {
     let current_speed = 10.0;
-    let result = run_player_fixed_update(
+    let result = run_player_update(
         InputComponent {
             is_brake_pressed: true,
             is_brake_just_pressed: true,
@@ -137,8 +137,8 @@ fn player_fixed_update_brake_tap_reduces_throttle_and_current_velocity() {
 }
 
 #[test]
-fn player_fixed_update_holding_brake_repeats_after_interval() {
-    let result = run_player_fixed_update(
+fn player_update_holding_brake_repeats_after_interval() {
+    let result = run_player_update(
         InputComponent {
             is_brake_pressed: true,
             ..Default::default()
@@ -161,8 +161,8 @@ fn player_fixed_update_holding_brake_repeats_after_interval() {
 }
 
 #[test]
-fn player_fixed_update_braking_clamps_velocity_to_minimum() {
-    let result = run_player_fixed_update(
+fn player_update_braking_clamps_velocity_to_minimum() {
+    let result = run_player_update(
         InputComponent {
             is_brake_pressed: true,
             is_brake_just_pressed: true,
@@ -184,8 +184,8 @@ fn player_fixed_update_braking_clamps_velocity_to_minimum() {
 }
 
 #[test]
-fn player_fixed_update_release_brake_resumes_acceleration() {
-    let brake_result = run_player_fixed_update(
+fn player_update_release_brake_resumes_acceleration() {
+    let brake_result = run_player_update(
         InputComponent {
             is_brake_pressed: true,
             is_brake_just_pressed: true,
@@ -196,7 +196,7 @@ fn player_fixed_update_release_brake_resumes_acceleration() {
         Vec3::new(0.0, 0.0, 5.0),
         Transform::default(),
     );
-    let release_result = run_player_fixed_update(
+    let release_result = run_player_update(
         InputComponent::default(),
         brake_result.player,
         0.25,
@@ -209,8 +209,8 @@ fn player_fixed_update_release_brake_resumes_acceleration() {
 }
 
 #[test]
-fn player_fixed_update_holding_brake_uses_forward_direction_as_minimum_from_zero_velocity() {
-    let result = run_player_fixed_update(
+fn player_update_holding_brake_uses_forward_direction_as_minimum_from_zero_velocity() {
+    let result = run_player_update(
         InputComponent {
             is_brake_pressed: true,
             is_brake_just_pressed: true,
@@ -226,8 +226,8 @@ fn player_fixed_update_holding_brake_uses_forward_direction_as_minimum_from_zero
 }
 
 #[test]
-fn player_fixed_update_holding_brake_uses_forward_direction_as_minimum_from_slow_velocity() {
-    let result = run_player_fixed_update(
+fn player_update_holding_brake_uses_forward_direction_as_minimum_from_slow_velocity() {
+    let result = run_player_update(
         InputComponent {
             is_brake_pressed: true,
             ..Default::default()
@@ -242,8 +242,8 @@ fn player_fixed_update_holding_brake_uses_forward_direction_as_minimum_from_slow
 }
 
 #[test]
-fn player_fixed_update_banked_input_turns_travel_direction() {
-    let left_result = run_player_fixed_update(
+fn player_update_banked_input_turns_travel_direction() {
+    let left_result = run_player_update(
         InputComponent {
             is_left_arrow_pressed: true,
             ..Default::default()
@@ -253,7 +253,7 @@ fn player_fixed_update_banked_input_turns_travel_direction() {
         Vec3::new(0.0, 0.0, 4.0),
         Transform::default(),
     );
-    let right_result = run_player_fixed_update(
+    let right_result = run_player_update(
         InputComponent {
             is_right_arrow_pressed: true,
             ..Default::default()
@@ -289,15 +289,15 @@ fn player_fixed_update_banked_input_turns_travel_direction() {
 }
 
 #[test]
-fn player_fixed_update_banked_turn_is_slower_than_straight_acceleration() {
-    let straight_result = run_player_fixed_update(
+fn player_update_banked_turn_is_slower_than_straight_acceleration() {
+    let straight_result = run_player_update(
         InputComponent::default(),
         PlayerComponent::default(),
         0.4,
         Vec3::new(0.0, 0.0, 5.0),
         Transform::default(),
     );
-    let banked_result = run_player_fixed_update(
+    let banked_result = run_player_update(
         InputComponent {
             is_left_arrow_pressed: true,
             ..Default::default()
@@ -314,9 +314,9 @@ fn player_fixed_update_banked_turn_is_slower_than_straight_acceleration() {
 }
 
 #[test]
-fn player_fixed_update_banked_turn_slows_by_tenth_percent_per_frame() {
+fn player_update_banked_turn_slows_by_tenth_percent_per_frame() {
     let current_speed = 5.0;
-    let result = run_player_fixed_update(
+    let result = run_player_update(
         InputComponent {
             is_left_arrow_pressed: true,
             ..Default::default()
@@ -332,8 +332,8 @@ fn player_fixed_update_banked_turn_slows_by_tenth_percent_per_frame() {
 }
 
 #[test]
-fn player_fixed_update_releasing_turn_clears_entry_speed_and_resumes_acceleration() {
-    let turn_result = run_player_fixed_update(
+fn player_update_releasing_turn_clears_entry_speed_and_resumes_acceleration() {
+    let turn_result = run_player_update(
         InputComponent {
             is_left_arrow_pressed: true,
             ..Default::default()
@@ -343,7 +343,7 @@ fn player_fixed_update_releasing_turn_clears_entry_speed_and_resumes_acceleratio
         Vec3::new(0.0, 0.0, 5.0),
         Transform::default(),
     );
-    let release_result = run_player_fixed_update(
+    let release_result = run_player_update(
         InputComponent::default(),
         turn_result.player,
         0.25,
@@ -356,8 +356,8 @@ fn player_fixed_update_releasing_turn_clears_entry_speed_and_resumes_acceleratio
 }
 
 #[test]
-fn player_fixed_update_banks_visual_child_from_current_bank() {
-    let left_result = run_player_fixed_update(
+fn player_update_banks_visual_child_from_current_bank() {
+    let left_result = run_player_update(
         InputComponent {
             is_left_arrow_pressed: true,
             ..Default::default()
@@ -367,7 +367,7 @@ fn player_fixed_update_banks_visual_child_from_current_bank() {
         Vec3::new(0.0, 0.0, 4.0),
         Transform::default(),
     );
-    let right_result = run_player_fixed_update(
+    let right_result = run_player_update(
         InputComponent {
             is_right_arrow_pressed: true,
             ..Default::default()
@@ -394,8 +394,8 @@ fn player_autopilot_bank_input_follows_figure_eight_cycle() {
 }
 
 #[test]
-fn player_fixed_update_autopilot_ignores_manual_wasd_and_uses_left_phase() {
-    let result = run_player_fixed_update(
+fn player_update_autopilot_ignores_manual_wasd_and_uses_left_phase() {
+    let result = run_player_update(
         InputComponent {
             is_autopilot_enabled: true,
             autopilot_elapsed_seconds: 0.0,
@@ -419,8 +419,8 @@ fn player_fixed_update_autopilot_ignores_manual_wasd_and_uses_left_phase() {
 }
 
 #[test]
-fn player_fixed_update_autopilot_levels_and_turns_right_by_phase() {
-    let wait_result = run_player_fixed_update(
+fn player_update_autopilot_levels_and_turns_right_by_phase() {
+    let wait_result = run_player_update(
         InputComponent {
             is_autopilot_enabled: true,
             autopilot_elapsed_seconds: 3.1,
@@ -434,7 +434,7 @@ fn player_fixed_update_autopilot_levels_and_turns_right_by_phase() {
         Vec3::new(0.0, 0.0, 4.0),
         Transform::default(),
     );
-    let right_result = run_player_fixed_update(
+    let right_result = run_player_update(
         InputComponent {
             is_autopilot_enabled: true,
             autopilot_elapsed_seconds: 4.0,
@@ -452,8 +452,8 @@ fn player_fixed_update_autopilot_levels_and_turns_right_by_phase() {
 }
 
 #[test]
-fn player_fixed_update_levels_bank_when_no_turn_input_is_held() {
-    let result = run_player_fixed_update(
+fn player_update_levels_bank_when_no_turn_input_is_held() {
+    let result = run_player_update(
         InputComponent {
             is_left_arrow_pressed: true,
             is_right_arrow_pressed: true,
@@ -478,8 +478,8 @@ fn player_fixed_update_levels_bank_when_no_turn_input_is_held() {
 }
 
 #[test]
-fn player_fixed_update_shoot_input_fires_and_brake_input_brakes_without_shooting() {
-    let w_result = run_player_fixed_update(
+fn player_update_shoot_input_fires_and_brake_input_brakes_without_shooting() {
+    let w_result = run_player_update(
         InputComponent {
             is_shoot_pressed: true,
             is_shoot_just_pressed: true,
@@ -490,7 +490,7 @@ fn player_fixed_update_shoot_input_fires_and_brake_input_brakes_without_shooting
         Vec3::ZERO,
         Transform::default(),
     );
-    let s_result = run_player_fixed_update(
+    let s_result = run_player_update(
         InputComponent {
             is_brake_pressed: true,
             is_brake_just_pressed: true,
@@ -518,8 +518,8 @@ fn player_fixed_update_shoot_input_fires_and_brake_input_brakes_without_shooting
 }
 
 #[test]
-fn player_fixed_update_holding_fire_starts_repeat_cooldown_after_unlock() {
-    let result = run_player_fixed_update(
+fn player_update_holding_fire_starts_repeat_cooldown_after_unlock() {
+    let result = run_player_update(
         InputComponent {
             is_shoot_pressed: true,
             ..Default::default()
@@ -544,8 +544,8 @@ fn player_fixed_update_holding_fire_starts_repeat_cooldown_after_unlock() {
 }
 
 #[test]
-fn player_fixed_update_shooting_sends_current_forward_speed_with_bullet() {
-    let result = run_player_fixed_update(
+fn player_update_shooting_sends_current_forward_speed_with_bullet() {
+    let result = run_player_update(
         InputComponent {
             is_shoot_pressed: true,
             is_shoot_just_pressed: true,
@@ -562,8 +562,8 @@ fn player_fixed_update_shooting_sends_current_forward_speed_with_bullet() {
 }
 
 #[test]
-fn player_fixed_update_shooting_spawns_bullet_in_front_of_rotated_model() {
-    let result = run_player_fixed_update(
+fn player_update_shooting_spawns_bullet_in_front_of_rotated_model() {
+    let result = run_player_update(
         InputComponent {
             is_shoot_pressed: true,
             is_shoot_just_pressed: true,
@@ -580,13 +580,13 @@ fn player_fixed_update_shooting_spawns_bullet_in_front_of_rotated_model() {
 }
 
 #[test]
-fn player_fixed_update_duplicate_input_still_allows_shooting() {
+fn player_update_duplicate_input_still_allows_shooting() {
     let mut app = App::new();
     let mut time = Time::<()>::default();
     time.advance_by(Duration::from_secs_f32(0.0));
     app.insert_resource(time);
     app.add_message::<BulletSpawnMessage>();
-    app.add_systems(Update, player_fixed_update_system);
+    app.add_systems(Update, player_update_system);
 
     app.world_mut().spawn(InputComponent {
         is_shoot_pressed: true,
@@ -612,8 +612,8 @@ fn player_fixed_update_duplicate_input_still_allows_shooting() {
 }
 
 #[test]
-fn player_fixed_update_fall_reset_restores_movement_state() {
-    let result = run_player_fixed_update(
+fn player_update_fall_reset_restores_movement_state() {
+    let result = run_player_update(
         InputComponent::default(),
         PlayerComponent {
             throttle: 1.0,
@@ -647,7 +647,7 @@ struct PlayerFixedUpdateResult {
     bullet_source: Option<BulletSpawnSource>,
 }
 
-fn run_player_fixed_update(
+fn run_player_update(
     input: InputComponent,
     player: PlayerComponent,
     delta_secs: f32,
@@ -659,7 +659,7 @@ fn run_player_fixed_update(
     time.advance_by(Duration::from_secs_f32(delta_secs));
     app.insert_resource(time);
     app.add_message::<BulletSpawnMessage>();
-    app.add_systems(Update, player_fixed_update_system);
+    app.add_systems(Update, player_update_system);
 
     app.world_mut().spawn(input);
     let (player_entity, visual_entity) = spawn_player(&mut app, player, velocity, transform);

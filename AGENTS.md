@@ -30,7 +30,7 @@ powershell.exe -ExecutionPolicy Bypass -File ./Scripts/Common/InstallDependencie
 ### 02. Run Active Game
 
 ```powershell
-powershell.exe -ExecutionPolicy Bypass -File ./Scripts/Other/RunGame.ps1
+powershell.exe -ExecutionPolicy Bypass -File ./Scripts/Other/RunGameDesktop.ps1
 ```
 
 Direct command:
@@ -41,7 +41,7 @@ cargo run -p game
 
 ### 03. Try Hot Reload
 
-Run 01 and 02, then edit line 23 in [Bevy/Crates/Game/Runtime/Systems/PlayerSystem.rs](Bevy/Crates/Game/Runtime/Systems/PlayerSystem.rs) (the PLAYER_COLOR constant) and save.
+Run 01 and 02, then edit [Bevy/Crates/Game/Runtime/Systems/PlayerSystem.rs](Bevy/Crates/Game/Runtime/Systems/PlayerSystem.rs) (for example, the `PLAYER_MAX_SPEED` constant) and save.
 
 ### Run With Subsecond Hot Reload
 
@@ -54,7 +54,7 @@ cargo install dioxus-cli@0.7.6
 Run:
 
 ```powershell
-powershell.exe -ExecutionPolicy Bypass -File ./Scripts/Common/RunGameWithHotReload.ps1
+powershell.exe -ExecutionPolicy Bypass -File ./Scripts/Common/RunGameDesktopWithHotReload.ps1
 ```
 
 The script runs:
@@ -110,7 +110,7 @@ Apply these conventions in active `game` code:
 - **Plugin layout terms:**
   - **Collapsed plugin:** a plugin has its own folder and all of its files are within that folder. This style is acceptable.
   - **Expanded plugin:** a plugin's files are spread across the standard runtime folders. This style is also acceptable.
-  - **Naming token:** each plugin has a naming token derived from its plugin name (e.g. `BulletPlugin` → token `Bullet`). Prefer tokens where the first part is the reusable domain prefix, so related names group together by domain before action or role. For example, use `GameResetPlugin`, `GameResetComponent`, and `game_reset_fixed_update_system` instead of `ResetGamePlugin`, `ResetGameComponent`, and `reset_game_fixed_update_system`. All types, files, and functions belonging to that plugin must begin with the token. For example: `BulletSpawnMessage`, `BulletMeshResource`, `BulletSpawnSoundResource`. This applies to both collapsed and expanded plugins.
+  - **Naming token:** each plugin has a naming token derived from its plugin name (e.g. `BulletPlugin` → token `Bullet`). Prefer tokens where the first part is the reusable domain prefix, so related names group together by domain before action or role. For example, use `GameResetPlugin`, `GameResetComponent`, and `game_reset_update_system` instead of `ResetGamePlugin`, `ResetGameComponent`, and `reset_game_update_system`. All types, files, and functions belonging to that plugin must begin with the token. For example: `BulletSpawnMessage`, `BulletMeshResource`, `BulletSpawnSoundResource`. This applies to both collapsed and expanded plugins.
 - **Resources:** type names end with `Resource`; resource filenames end with `Resource.rs`.
 - **Systems:** scheduled/public system functions live under `Systems/`.
 - **System files:** system filenames end with `System.rs`.
@@ -126,3 +126,12 @@ Apply these conventions in active `game` code:
   - `.add_systems(Update, some_update_system)`
 
 When adding hot-reloadable update behavior, annotate the system function with `#[hot]` from `bevy_simple_subsecond_system::prelude`.
+
+<!-- SPECKIT START -->
+Spec Kit is installed in this repository. For new planned gameplay, UI, asset,
+workflow, or architecture changes, use `.specify/memory/constitution.md` as the
+non-negotiable project standard and prefer Spec Kit specs/plans/tasks where
+feasible before changing runtime code. Existing repo-local `.codex` skills may
+still be used for focused Bevy workflows, but they must respect the constitution
+and any active Spec Kit plan.
+<!-- SPECKIT END -->

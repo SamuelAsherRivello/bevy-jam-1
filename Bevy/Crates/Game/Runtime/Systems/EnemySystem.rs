@@ -27,7 +27,7 @@ pub fn enemy_startup_system(world: &mut World) {
 }
 
 // System clones loaded enemy model materials and recolors them without changing the player model.
-pub fn enemy_texture_tint_system(
+pub fn enemy_texture_tint_update_system(
     mut commands: Commands,
     pending_enemy_models: Query<Entity, With<PlaneTextureTintComponent>>,
     children_query: Query<&Children>,
@@ -67,7 +67,7 @@ pub fn enemy_texture_tint_system(
 
 #[hot]
 // System handles fixed-step enemy autopilot movement.
-pub fn enemy_fixed_update_system(
+pub fn enemy_update_system(
     time: Res<Time>,
     mut enemy_query: Query<
         (

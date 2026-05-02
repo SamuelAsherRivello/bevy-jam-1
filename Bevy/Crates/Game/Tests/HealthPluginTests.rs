@@ -15,8 +15,7 @@ use crate::{
     health_component::HealthComponent,
     health_dying_component::HealthDyingComponent,
     health_system::{
-        health_damage_fixed_update_system, health_death_fixed_update_system,
-        health_regen_fixed_update_system,
+        health_damage_update_system, health_death_update_system, health_regen_update_system,
     },
     player_bundle::PlayerBundle,
     player_component::PlayerComponent,
@@ -59,7 +58,7 @@ fn player_bullets_take_three_hits_to_kill_enemy() {
     let mut app = App::new();
     app.add_message::<CollisionStart>();
     app.add_message::<AudioPlayMessage>();
-    app.add_systems(Update, health_damage_fixed_update_system);
+    app.add_systems(Update, health_damage_update_system);
 
     let enemy_entity = app
         .world_mut()
@@ -143,7 +142,7 @@ fn enemy_bullet_can_damage_player() {
     let mut app = App::new();
     app.add_message::<CollisionStart>();
     app.add_message::<AudioPlayMessage>();
-    app.add_systems(Update, health_damage_fixed_update_system);
+    app.add_systems(Update, health_damage_update_system);
 
     let bullet_entity = app
         .world_mut()
@@ -194,7 +193,7 @@ fn health_regen_restores_one_percent_per_second() {
     let mut time = Time::<()>::default();
     time.advance_by(Duration::from_secs_f32(2.0));
     app.insert_resource(time);
-    app.add_systems(Update, health_regen_fixed_update_system);
+    app.add_systems(Update, health_regen_update_system);
 
     let entity = app
         .world_mut()
@@ -222,7 +221,7 @@ fn health_regen_caps_at_full_health() {
     let mut time = Time::<()>::default();
     time.advance_by(Duration::from_secs_f32(2.0));
     app.insert_resource(time);
-    app.add_systems(Update, health_regen_fixed_update_system);
+    app.add_systems(Update, health_regen_update_system);
 
     let entity = app
         .world_mut()
@@ -250,7 +249,7 @@ fn dying_entity_deletes_after_shrink_duration() {
     let mut time = Time::<()>::default();
     time.advance_by(Duration::from_secs_f32(0.25));
     app.insert_resource(time);
-    app.add_systems(Update, health_death_fixed_update_system);
+    app.add_systems(Update, health_death_update_system);
 
     let entity = app
         .world_mut()

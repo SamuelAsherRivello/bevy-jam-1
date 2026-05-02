@@ -1,4 +1,0 @@
-interface:
-  display_name: "Refactor Feature"
-  short_description: "Refactor a Bevy feature without behavior drift."
-  default_prompt: "Refactor the named Bevy feature or development area while preserving runtime behavior and user experience."

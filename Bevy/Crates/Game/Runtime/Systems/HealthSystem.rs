@@ -23,7 +23,7 @@ const HEALTH_DEATH_SHRINK_SECONDS: f32 = 0.25;
 
 #[hot]
 // System handles fixed-step bullet damage against health-bearing targets.
-pub fn health_damage_fixed_update_system(
+pub fn health_damage_update_system(
     mut commands: Commands,
     mut collision_start_messages: MessageReader<CollisionStart>,
     mut audio_messages: MessageWriter<AudioPlayMessage>,
@@ -72,7 +72,7 @@ pub fn health_damage_fixed_update_system(
 
 #[hot]
 // System slowly regenerates health-bearing entities that are still alive.
-pub fn health_regen_fixed_update_system(
+pub fn health_regen_update_system(
     time: Res<Time>,
     mut health_query: Query<&mut HealthComponent, Without<HealthDyingComponent>>,
 ) {
@@ -85,7 +85,7 @@ pub fn health_regen_fixed_update_system(
 
 #[hot]
 // System deletes entities during fixed-step cleanup after their death animation has completed.
-pub fn health_death_fixed_update_system(
+pub fn health_death_update_system(
     mut commands: Commands,
     time: Res<Time>,
     mut dying_query: Query<(Entity, &mut HealthDyingComponent)>,

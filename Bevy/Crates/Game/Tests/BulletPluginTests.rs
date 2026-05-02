@@ -8,7 +8,7 @@ use crate::{
     bullet_from_enemy_component::BulletFromEnemyComponent,
     bullet_from_player_component::BulletFromPlayerComponent,
     bullet_resource::{BulletMaterialResource, BulletMeshResource},
-    bullet_system::{BulletSpawnMessage, BulletSpawnSource, bullet_spawn_fixed_update_system},
+    bullet_system::{BulletSpawnMessage, BulletSpawnSource, bullet_spawn_update_system},
 };
 
 #[test]
@@ -18,7 +18,7 @@ fn bullet_spawn_allows_multiple_bullets_in_air() {
     app.add_message::<AudioPlayMessage>();
     app.insert_resource(BulletMeshResource(Handle::<Mesh>::default()));
     app.insert_resource(BulletMaterialResource(Handle::<StandardMaterial>::default()));
-    app.add_systems(Update, bullet_spawn_fixed_update_system);
+    app.add_systems(Update, bullet_spawn_update_system);
 
     app.world_mut()
         .resource_mut::<Messages<BulletSpawnMessage>>()

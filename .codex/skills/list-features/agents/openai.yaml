@@ -1,4 +1,0 @@
-interface:
-  display_name: "List Features"
-  short_description: "List Bevy features from plugins"
-  default_prompt: "List the current Bevy game features from the runtime plugin feature comments."

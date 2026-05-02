@@ -1,8 +1,7 @@
 use bevy::prelude::{App, FixedUpdate, Plugin};
 
 use crate::health_system::{
-    health_damage_fixed_update_system, health_death_fixed_update_system,
-    health_regen_fixed_update_system,
+    health_damage_update_system, health_death_update_system, health_regen_update_system,
 };
 
 // Feature: Fixed-step health damage, regeneration, and death cleanup.
@@ -13,9 +12,9 @@ impl Plugin for HealthPlugin {
         app.add_systems(
             FixedUpdate,
             (
-                health_damage_fixed_update_system,
-                health_regen_fixed_update_system,
-                health_death_fixed_update_system,
+                health_damage_update_system,
+                health_regen_update_system,
+                health_death_update_system,
             ),
         );
     }

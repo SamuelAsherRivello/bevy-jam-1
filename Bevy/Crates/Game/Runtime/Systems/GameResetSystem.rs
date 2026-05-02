@@ -16,7 +16,7 @@ use crate::{
 };
 
 // System handles the fixed-step in-window GameReset rebuild of game-owned content.
-pub fn game_reset_fixed_update_system(world: &mut World) {
+pub fn game_reset_update_system(world: &mut World) {
     let should_game_reset = {
         let mut input_query = world.query::<&InputComponent>();
         input_query

@@ -1,18 +1,34 @@
+param(
+    [switch]$BuildOnly,
+    [string]$BasePath = ""
+)
+
 $ErrorActionPreference = "Stop"
-Write-Host "This script serves the game in browser/wasm."
+Write-Host "This script builds the game for browser/wasm without hot reload."
 
 $ScriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
-$ProjectRoot = Resolve-Path (Join-Path $ScriptRoot "..\..")
-& (Join-Path $ScriptRoot "StopGame.ps1")
+$ProjectRoot = (Resolve-Path (Join-Path $ScriptRoot "..\..")).Path
+if (-not $BuildOnly) {
+    & (Join-Path $ScriptRoot "StopGame.ps1")
+}
 Set-Location $ProjectRoot
 
-$env:CARGO_INCREMENTAL = "1"
+if ($BuildOnly) {
+    $env:CARGO_INCREMENTAL = "0"
+} else {
+    $env:CARGO_INCREMENTAL = "1"
+}
+
 if (-not $env:CARGO_BUILD_JOBS) {
     $env:CARGO_BUILD_JOBS = [Environment]::ProcessorCount
 }
 
 if (Get-Command sccache -ErrorAction SilentlyContinue) {
-    Write-Host "sccache detected but CARGO_INCREMENTAL is set: skipping compiler cache."
+    if ($BuildOnly) {
+        Write-Host "sccache detected: using compiler cache."
+    } else {
+        Write-Host "sccache detected but CARGO_INCREMENTAL is set: skipping compiler cache."
+    }
 } else {
     Write-Host "No sccache detected."
 }
@@ -20,7 +36,25 @@ if (Get-Command sccache -ErrorAction SilentlyContinue) {
 $env:BEVY_ASSET_ROOT = "$ProjectRoot"
 
 if (-not (Get-Command dx -ErrorAction SilentlyContinue)) {
-    throw "Dioxus CLI is required for browser serving. Install it with: cargo install dioxus-cli@0.7.6"
+    throw "Dioxus CLI is required for browser builds. Install it with: cargo install dioxus-cli@0.7.6"
+}
+
+$DxBuildArgs = @("build", "--package", "game", "--platform", "web", "--release")
+if (-not [string]::IsNullOrWhiteSpace($BasePath)) {
+    $DxBuildArgs += @("--base-path", $BasePath)
+}
+
+if ($BuildOnly) {
+    Write-Host ""
+    Write-Host "Building game browser/wasm output."
+    Write-Host "Running without hot reload."
+    if (-not [string]::IsNullOrWhiteSpace($BasePath)) {
+        Write-Host "Base path: $BasePath"
+    }
+    Write-Host ""
+
+    dx @DxBuildArgs
+    exit $LASTEXITCODE
 }
 
 Write-Host ""

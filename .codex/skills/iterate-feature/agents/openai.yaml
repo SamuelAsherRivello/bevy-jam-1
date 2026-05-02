@@ -1,4 +1,0 @@
-interface:
-  display_name: "Iterate Feature"
-  short_description: "Review and propose improvements for one Bevy feature."
-  default_prompt: "Use iterate-feature to review the Player feature and offer improvement choices."

@@ -101,7 +101,7 @@ pub fn player_startup_system(world: &mut World) {
 
 #[hot]
 // System handles the fixed-step movement and shooting of the player entity.
-pub fn player_fixed_update_system(
+pub fn player_update_system(
     time: Res<Time>,
     input_query: Query<&InputComponent>,
     mut spawn_bullet_messages: MessageWriter<BulletSpawnMessage>,

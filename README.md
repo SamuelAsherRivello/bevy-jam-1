@@ -1,15 +1,26 @@
 # Bevy Jam 1
 
-Bevy Jam 1 with hot reload.
+Bevy Jam 1 is a 3D Bevy aircraft combat prototype with native hot reload and a static web/WASM export.
 
 
 ## Features
 
-* Bevy game structure with best practices
-* Optimized project compile times for full build
-* Optimized sub-second hot reload times 
-* Targets: Windows 11 Native (With hot reload) 
-* Targets: Web Browser WASM (Without hot reload)
+* Bevy game structure with `game` and `shared` crates
+* Hot-reloadable native gameplay systems with Subsecond through Dioxus CLI
+* Aircraft flight, shooting, enemy planes, health, reset, audio, HUD, toast, minimap, and reticles
+* Targets: Windows 11 native with hot reload
+* Targets: web browser WASM without hot reload
+
+
+<BR>
+
+## Live Web App
+
+https://samuelasherrivello.github.io/bevy-jam-1/
+
+The static web/WASM build is exported and hosted automatically with each push to the main branch.
+
+<BR>
 
 ## Pics
 
@@ -19,7 +30,7 @@ Bevy Jam 1 with hot reload.
   <img src="./Documentation/Images/Screenshot01.jpg" width="400">
 </a>
 
-### InfoGraphic
+### Infographic
 
 <a href="./Documentation/Images/Infographic01.png">
   <img src="./Documentation/Images/Infographic01.png" width="400">
@@ -51,7 +62,7 @@ These steps are optional
 These steps are required
 
 1. Run common scripts below
-2. Try hot reload. While app running, open `Bevy/Crates/Game/Runtime/Systems/PlayerSystem.rs`, edit line 15 (`const PLAYER_THRUST_FORCE: f32 = 20.0;`), and save.
+2. Try hot reload. While the app is running, open `Bevy/Crates/Game/Runtime/Systems/PlayerSystem.rs`, edit `PLAYER_MAX_SPEED`, and save.
 
 
 ## Scripts
@@ -61,7 +72,7 @@ These steps are required
 | # | Script | Platform | Required? | Use |
 | -- | ------ | -------- | --------- | --- |
 | 01 | [`InstallDependencies.ps1`](./Scripts/Common/InstallDependencies.ps1) | Windows | ✅ | First-time setup and validation build. |
-| 02 | [`RunGameWithHotReload.ps1`](./Scripts/Common/RunGameWithHotReload.ps1) | Windows | ✅ | Build and run the active game with hot reload. |
+| 02 | [`RunGameDesktopWithHotReload.ps1`](./Scripts/Common/RunGameDesktopWithHotReload.ps1) | Windows | ✅ | Build and run the active game with hot reload. |
 
 ### Other
 
@@ -70,8 +81,8 @@ These steps are required
 | 03 | [`BuildGameCrate.ps1`](./Scripts/Other/BuildGameCrate.ps1) | Windows | ❌ | Build the active game crate without running it. |
 | 04 | [`BuildSharedCrate.ps1`](./Scripts/Other/BuildSharedCrate.ps1) | Windows | ❌ | Build the shared crate without running the game. |
 | 05 | [`DebugHotReloadAttributeCount.ps1`](./Scripts/Other/DebugHotReloadAttributeCount.ps1) | Windows | ❌ | Count hot-reload attributes for debugging. |
-| 06 | [`RunGame.ps1`](./Scripts/Other/RunGame.ps1) | Windows | ❌ | Build and run the active game without hot reload. |
-| 07 | [`RunGameWeb.ps1`](./Scripts/Other/RunGameWeb.ps1) | Windows | ❌ | Build and run the game in browser/wasm without hot reload. |
+| 06 | [`RunGameDesktop.ps1`](./Scripts/Other/RunGameDesktop.ps1) | Windows | ❌ | Build and run the active game without hot reload. |
+| 07 | [`RunGameWeb.ps1`](./Scripts/Other/RunGameWeb.ps1) | Windows | ❌ | Build and run the game in browser WASM without hot reload. |
 | 08 | [`RunTestsGame.ps1`](./Scripts/Other/RunTestsGame.ps1) | Windows | ❌ | Run the game test suite. |
 | 09 | [`RunModelAssetTests.ps1`](./Scripts/Other/RunModelAssetTests.ps1) | Windows | ❌ | Run model asset validation tests without stopping the active game. |
 | 10 | [`RunTestsShared.ps1`](./Scripts/Other/RunTestsShared.ps1) | Windows | ❌ | Run shared crate tests. |
@@ -120,13 +131,13 @@ The workspace has 2 active crates: `game` and `shared`.
 | --- | --- | --- |
 | `W` / `↑` | Shoot | ❌ |
 | `A` / `←` | Lateral thrust left | ❌ |
-| `S` | Brake | ❌ |
+| `S` / `↓` | Brake | ❌ |
 | `D` / `→` | Lateral thrust right | ❌ |
 | `P` | Autopilot | ✅ |
 | `F` | Show or hide FPS | ✅ |
 | `I` | Show or hide Bevy Inspector | ✅ |
-| `O` | DebugDraw | ✅ |
-| `R` | GameReset | ❌ |
+| `O` | Debug draw and minimap viewport wire | ✅ |
+| `R` | Game reset | ❌ |
 
 ---
 
@@ -139,8 +150,8 @@ Learn Bevy by extending this project with new features. Here are some ideas.
 | -- | ----- | ----------- | ---- |
 | 1 | 3DModel | Replace the player cube with a 3D model. | [Bevy glTF examples](https://bevy.org/examples/#gltf) |
 | 2 | Infinite Scroll | Replace the floor with a large textured world and lock the camera to the player. | [Bevy top-down camera](https://bevy.org/examples/camera/2d-top-down-camera/) |
-| 3 | Enemies | Spawn an enemy every X seconds and make bullets hit enemies. | [Avian collision detection](https://docs.rs/avian3d/latest/avian3d/collision/index.html) |
-| 4 | Game UI | Add health, score, ammo, and wave counters to the screen. | [Bevy UI examples](https://bevy.org/examples/#ui-user-interface) |
+| 3 | Enemy Waves | Add timed enemy waves, win/loss states, and score. | [Avian collision detection](https://docs.rs/avian3d/latest/avian3d/collision/index.html) |
+| 4 | Game UI | Add score, ammo, wave counters, and menu flow. | [Bevy UI examples](https://bevy.org/examples/#ui-user-interface) |
 | 5 | Audio Effects | Add firing, impact, and enemy-hit sounds. | [Bevy audio examples](https://bevy.org/examples/#audio) |
 | 6 | Mini Map | Add a small top-down camera view so players can see nearby world space. | [Bevy Cheat Book (Cameras)](https://bevy-cheatbook.github.io/graphics/camera.html) |
 

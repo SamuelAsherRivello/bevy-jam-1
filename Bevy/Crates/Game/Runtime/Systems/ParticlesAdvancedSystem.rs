@@ -67,7 +67,7 @@ pub fn particles_advanced_startup_system(
 }
 
 // System attaches configured particle emitters to live game entities.
-pub fn particles_advanced_attach_system(
+pub fn particles_advanced_attach_update_system(
     mut commands: Commands,
     particles: Option<Res<ParticlesAdvancedResource>>,
     plane_query: Query<

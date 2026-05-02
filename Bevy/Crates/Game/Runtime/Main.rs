@@ -1,6 +1,7 @@
 use avian3d::prelude::{Gravity, PhysicsDebugPlugin, PhysicsGizmos, PhysicsPlugins};
 use bevy::app::AppExit;
 use bevy::prelude::*;
+#[cfg(not(target_arch = "wasm32"))]
 use bevy_hanabi::prelude::HanabiPlugin;
 use bevy_simple_subsecond_system as hot_reload;
 use bevy_tweening::TweeningPlugin;
@@ -132,12 +133,16 @@ pub(crate) mod input_component;
 pub(crate) mod input_plugin;
 #[path = "Systems/InputSystem.rs"]
 pub(crate) mod input_system;
+#[cfg(not(target_arch = "wasm32"))]
 #[path = "Components/ParticlesAdvancedComponent.rs"]
 pub(crate) mod particles_advanced_component;
+#[cfg(not(target_arch = "wasm32"))]
 #[path = "Plugins/ParticlesAdvancedPlugin.rs"]
 pub(crate) mod particles_advanced_plugin;
+#[cfg(not(target_arch = "wasm32"))]
 #[path = "Resources/ParticlesAdvancedResource.rs"]
 pub(crate) mod particles_advanced_resource;
+#[cfg(not(target_arch = "wasm32"))]
 #[path = "Systems/ParticlesAdvancedSystem.rs"]
 pub(crate) mod particles_advanced_system;
 #[path = "Bundles/PlaneBundle.rs"]
@@ -272,6 +277,7 @@ fn main_hot_reload() -> App {
     app.add_plugins(TweeningPlugin);
 
     // Plugin handles GPU particle rendering.
+    #[cfg(not(target_arch = "wasm32"))]
     app.add_plugins(HanabiPlugin);
 
     // Shared crate plugins.
@@ -313,6 +319,7 @@ fn main_hot_reload() -> App {
     app.add_plugins(enemy_plugin::EnemyPlugin);
 
     // Plugin handles reusable advanced particle effects attached to game entities.
+    #[cfg(not(target_arch = "wasm32"))]
     app.add_plugins(particles_advanced_plugin::ParticlesAdvancedPlugin);
 
     // Plugin handles propeller discovery and rotation.

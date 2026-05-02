@@ -58,7 +58,7 @@ pub fn bullet_startup_system(
 
 #[hot]
 // System handles the fixed-step spawning of the bullet projectiles.
-pub fn bullet_spawn_fixed_update_system(
+pub fn bullet_spawn_update_system(
     mut commands: Commands,
     mut spawn_bullet_messages: MessageReader<BulletSpawnMessage>,
     mut audio_messages: MessageWriter<AudioPlayMessage>,
@@ -127,7 +127,7 @@ pub fn bullet_spawn_fixed_update_system(
 
 #[hot]
 // System handles the fixed-step terrain collision of the bullet projectiles.
-pub fn bullet_terrain_collision_fixed_update_system(
+pub fn bullet_terrain_collision_update_system(
     mut commands: Commands,
     mut collision_start_messages: MessageReader<CollisionStart>,
     mut audio_messages: MessageWriter<AudioPlayMessage>,
@@ -160,7 +160,7 @@ pub fn bullet_terrain_collision_fixed_update_system(
 
 #[hot]
 // System handles the fixed-step lifetime of the bullet projectiles.
-pub fn bullet_despawn_fixed_update_system(
+pub fn bullet_despawn_update_system(
     mut commands: Commands,
     time: Res<Time>,
     mut bullet_query: Query<(Entity, &mut BulletComponent)>,

@@ -20,9 +20,11 @@ fast-hot-reload = ["bevy/dynamic_linking"]
 avian3d = "0.6"
 bevy = { version = "0.18.1", features = ["ghost_nodes", "jpeg", "mp3", "wav"] }
 bevy-inspector-egui = "0.36.0"
-bevy_hanabi = { version = "0.18", default-features = false, features = ["3d"] }
 bevy_simple_subsecond_system = { path = "../Shared/Runtime/3rdParty/bevy_simple_subsecond_system" }
 bevy_tweening = "0.15"
 fastrand = "2.4.1"
 shared = { path = "../Shared" }
 smooth-bevy-cameras = { path = "../Shared/Runtime/3rdParty/smooth-bevy-cameras" }
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+bevy_hanabi = { version = "0.18", default-features = false, features = ["3d"] }
