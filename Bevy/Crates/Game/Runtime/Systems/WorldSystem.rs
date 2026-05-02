@@ -5,6 +5,7 @@ use bevy::{
     ui::IsDefaultUiCamera,
     window::PrimaryWindow,
 };
+use smooth_bevy_cameras::{LookTransform, Smoother};
 
 use crate::{
     camera_advanced_component::CameraAdvancedComponent, cloud_bundle_spawner::CloudBundleSpawner,
@@ -73,6 +74,8 @@ pub fn world_startup_system(
             Msaa::Off,
             NoIndirectDrawing,
             Transform::from_translation(camera_translation).looking_at(camera_look_at, Vec3::Y),
+            LookTransform::new(camera_translation, camera_look_at, Vec3::Y),
+            Smoother::new(camera.smooth_bevy_lag_weight(1.0 / 60.0)),
             camera,
         ))
         .id();
@@ -97,6 +100,8 @@ pub fn world_startup_system(
             NoIndirectDrawing,
             RenderLayers::layer(DEBUG_VIEWPORT_RENDER_LAYER),
             Transform::from_translation(camera_translation).looking_at(camera_look_at, Vec3::Y),
+            LookTransform::new(camera_translation, camera_look_at, Vec3::Y),
+            Smoother::new(camera.smooth_bevy_lag_weight(1.0 / 60.0)),
             camera,
         ))
         .id();

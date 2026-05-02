@@ -56,3 +56,14 @@ impl Default for CameraAdvancedComponent {
         }
     }
 }
+
+impl CameraAdvancedComponent {
+    pub(crate) fn smooth_bevy_lag_weight(&self, delta_seconds: f32) -> f32 {
+        if self.translation_smoothing <= 0.0 {
+            0.0
+        } else {
+            (-self.translation_smoothing * delta_seconds.max(0.0)).exp()
+        }
+        .clamp(0.0, 0.999_999)
+    }
+}

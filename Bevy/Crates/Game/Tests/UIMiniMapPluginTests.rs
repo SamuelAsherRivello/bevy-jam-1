@@ -6,10 +6,10 @@ use crate::{
     player_component::PlayerComponent,
     ui_mini_map_component::{UIMiniMapComponent, UIMiniMapTarget},
     ui_mini_map_system::{
-        ui_mini_map_focus_center_from_camera_translation, ui_mini_map_focus_from_viewport,
-        ui_mini_map_target_center_from_player, ui_mini_map_toggle_viewport_update_system,
-        ui_mini_map_update_system, ui_mini_map_viewport_edge_specs,
-        ui_mini_map_viewport_for_physical_size,
+        UI_MINI_MAP_VIEWPORT_MARGIN_PIXELS, ui_mini_map_focus_center_from_camera_translation,
+        ui_mini_map_focus_from_viewport, ui_mini_map_target_center_from_player,
+        ui_mini_map_toggle_viewport_update_system, ui_mini_map_update_system,
+        ui_mini_map_viewport_edge_specs, ui_mini_map_viewport_for_physical_size,
     },
     ui_mini_map_viewport_component::UIMiniMapViewportComponent,
     ui_mini_map_viewport_resource::UIMiniMapViewportResource,
@@ -20,8 +20,22 @@ fn ui_mini_map_viewport_is_square_in_the_upper_right() {
     let viewport = ui_mini_map_viewport_for_physical_size(UVec2::new(1280, 720));
 
     assert_eq!(viewport.physical_size.x, viewport.physical_size.y);
-    assert_eq!(viewport.physical_size, UVec2::splat(165));
-    assert_eq!(viewport.physical_position, UVec2::new(1099, 16));
+    assert_eq!(viewport.physical_size, UVec2::splat(161));
+    assert_eq!(
+        viewport.physical_position,
+        UVec2::new(
+            1280 - 161 - UI_MINI_MAP_VIEWPORT_MARGIN_PIXELS,
+            UI_MINI_MAP_VIEWPORT_MARGIN_PIXELS
+        )
+    );
+    assert_eq!(
+        1280 - viewport.physical_position.x - viewport.physical_size.x,
+        UI_MINI_MAP_VIEWPORT_MARGIN_PIXELS
+    );
+    assert_eq!(
+        viewport.physical_position.y,
+        UI_MINI_MAP_VIEWPORT_MARGIN_PIXELS
+    );
 }
 
 #[test]

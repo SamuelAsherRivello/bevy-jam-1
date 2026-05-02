@@ -1,6 +1,7 @@
 use bevy::prelude::*;
 use bevy_simple_subsecond_system as hot_reload;
 use hot_reload::prelude::hot;
+use smooth_bevy_cameras::{LookTransform, Smoother};
 
 use crate::{
     camera_advanced_component::CameraAdvancedComponent, player_component::PlayerComponent,
@@ -18,7 +19,13 @@ pub fn camera_advanced_update_system(
     time: Res<Time>,
     player_query: Query<&Transform, With<PlayerComponent>>,
     mut camera_query: Query<
-        (&CameraAdvancedComponent, &mut Projection, &mut Transform),
+        (
+            &CameraAdvancedComponent,
+            &mut Projection,
+            &Transform,
+            &mut LookTransform,
+            &mut Smoother,
+        ),
         Without<PlayerComponent>,
     >,
 ) {
@@ -30,12 +37,50 @@ pub fn camera_advanced_update_system(
         rotation: player_transform.rotation,
     };
 
-    for (camera, mut projection, mut transform) in &mut camera_query {
+    for (camera, mut projection, transform, mut look_transform, mut smoother) in &mut camera_query {
         camera_advanced_apply_projection(camera, projection.as_mut());
-        camera_advanced_apply_transform(camera, &target, time.delta_secs(), &mut transform);
+        camera_advanced_apply_look_transform(
+            camera,
+            &target,
+            time.delta_secs(),
+            transform,
+            &mut look_transform,
+            &mut smoother,
+        );
     }
 }
 
+pub(crate) fn camera_advanced_apply_look_transform(
+    camera: &CameraAdvancedComponent,
+    target: &CameraAdvancedTarget,
+    delta_seconds: f32,
+    current_transform: &Transform,
+    look_transform: &mut LookTransform,
+    smoother: &mut Smoother,
+) {
+    let desired_translation =
+        camera_advanced_constrain_translation(camera, current_transform.translation, target);
+    let desired_translation = if camera.follow_translation_with_offset {
+        desired_translation
+    } else {
+        current_transform.translation
+    };
+
+    let desired_rotation = if camera.look_at_target_with_offset {
+        let look_at_target = camera_advanced_look_at_target(camera, target);
+        let rotation = camera_advanced_look_at_rotation(desired_translation, look_at_target);
+        camera_advanced_constrain_rotation(camera, current_transform.rotation, rotation)
+    } else {
+        current_transform.rotation
+    };
+
+    look_transform.eye = desired_translation;
+    look_transform.target = desired_translation + desired_rotation.mul_vec3(Vec3::NEG_Z);
+    look_transform.up = desired_rotation.mul_vec3(Vec3::Y);
+    smoother.set_lag_weight(camera.smooth_bevy_lag_weight(delta_seconds));
+}
+
+#[cfg(test)]
 pub(crate) fn camera_advanced_apply_transform(
     camera: &CameraAdvancedComponent,
     target: &CameraAdvancedTarget,
@@ -198,6 +243,7 @@ pub(crate) fn camera_advanced_smooth_vec3(
     )
 }
 
+#[cfg(test)]
 pub(crate) fn camera_advanced_smooth_quat(
     current: Quat,
     target: Quat,

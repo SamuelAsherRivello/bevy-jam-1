@@ -14,15 +14,18 @@ use shared::{
 };
 
 use crate::{
-    bullet_component::BulletComponent, game_reset_component::GameResetComponent,
-    game_scene_resource::GameSceneResource, input_component::InputComponent,
-    ui_hud_fps_text_component::UIHUDFpsTextComponent,
+    game_reset_component::GameResetComponent, game_scene_resource::GameSceneResource,
+    input_component::InputComponent, ui_hud_fps_text_component::UIHUDFpsTextComponent,
     ui_hud_key_text_component::UIHUDKeyTextComponent, ui_hud_resource::UIHUDTextResource,
     ui_hud_text_component::UIHUDTextComponent,
     ui_mini_map_viewport_resource::UIMiniMapViewportResource, ui_toast_system::UIToastSpawnMessage,
 };
 
 const FPS_UPDATE_INTERVAL_SECONDS: f32 = 0.5;
+pub(crate) const SCREEN_PADDING_TOP: f32 = 24.0;
+pub(crate) const SCREEN_PADDING_LEFT: f32 = 24.0;
+pub(crate) const SCREEN_PADDING_BOTTOM: f32 = 24.0;
+pub(crate) const SCREEN_PADDING_RIGHT: f32 = 24.0;
 
 #[derive(SystemParam)]
 pub struct UIHUDUpdateParams<'w, 's> {
@@ -33,7 +36,6 @@ pub struct UIHUDUpdateParams<'w, 's> {
     ui_mini_map_viewport: Res<'w, UIMiniMapViewportResource>,
     gizmo_config_store: ResMut<'w, GizmoConfigStore>,
     toast_messages: MessageWriter<'w, UIToastSpawnMessage>,
-    bullet_query: Query<'w, 's, (), With<BulletComponent>>,
     input_query: Query<'w, 's, &'static InputComponent>,
     inspector_query: Query<'w, 's, &'static BevyInspectorComponent>,
     text_query: Query<'w, 's, &'static mut Text, With<UIHUDTextComponent>>,
@@ -53,9 +55,16 @@ pub fn ui_hud_startup_system(mut commands: Commands, game_scene: Option<Res<Game
             TextColor(Color::WHITE),
             Node {
                 position_type: PositionType::Absolute,
-                left: Val::Px(24.0),
-                top: Val::Px(24.0),
-                padding: UiRect::axes(Val::Px(12.0), Val::Px(8.0)),
+                left: Val::Px(SCREEN_PADDING_LEFT),
+                top: Val::Px(SCREEN_PADDING_TOP),
+                width: Val::Px(210.0),
+                align_items: AlignItems::Center,
+                padding: UiRect {
+                    left: Val::Px(40.0),
+                    right: Val::Px(12.0),
+                    top: Val::Px(8.0),
+                    bottom: Val::Px(8.0),
+                },
                 border_radius: BorderRadius::all(Val::Px(8.0)),
                 ..Default::default()
             },
@@ -68,7 +77,7 @@ pub fn ui_hud_startup_system(mut commands: Commands, game_scene: Option<Res<Game
             spawn_key_span(parent, "A", KeyCode::KeyA, false);
             spawn_key_span(parent, "S", KeyCode::KeyS, false);
             spawn_key_span(parent, "D", KeyCode::KeyD, false);
-            parent.spawn(TextSpan::new(" : "));
+            parent.spawn(TextSpan::new("\nKEYS: "));
             spawn_key_span(parent, "P", KeyCode::KeyP, true);
             parent.spawn(TextSpan::new(" "));
             spawn_key_span(parent, "F", KeyCode::KeyF, true);
@@ -151,8 +160,6 @@ pub fn ui_hud_update_system(mut params: UIHUDUpdateParams) {
         params.ui_hud_text.fps_accumulated_frames = 0;
     }
 
-    let bullet_count = params.bullet_query.iter().count();
-
     let fps_on = params.ui_hud_text.is_fps_visible;
     let inspector_on = params
         .inspector_query
@@ -207,8 +214,8 @@ pub fn ui_hud_update_system(mut params: UIHUDUpdateParams) {
     };
 
     let full_text = format!(
-        "Bevy Jam 1\nFrame: {}\nReloads: {:03}, Bullets: {:03}\nKeys: ",
-        params.context.frame_local_count, params.context.reload_count, bullet_count
+        "Bevy Jam 1\nFrame: {}\nReloads: {:03}\nKEYS: ",
+        params.context.frame_local_count, params.context.reload_count
     );
 
     for mut text in &mut params.text_query {

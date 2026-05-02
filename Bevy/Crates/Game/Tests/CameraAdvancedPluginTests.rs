@@ -1,9 +1,11 @@
 use bevy::prelude::*;
+use smooth_bevy_cameras::{LookTransform, Smoother};
 
 use crate::{
     camera_advanced_component::CameraAdvancedComponent,
     camera_advanced_system::{
-        CameraAdvancedTarget, camera_advanced_apply_projection, camera_advanced_apply_transform,
+        CameraAdvancedTarget, camera_advanced_apply_look_transform,
+        camera_advanced_apply_projection, camera_advanced_apply_transform,
         camera_advanced_constrain_rotation, camera_advanced_desired_translation,
         camera_advanced_look_at_target, camera_advanced_offset_rotation,
         camera_advanced_smoothing_factor,
@@ -95,6 +97,50 @@ fn camera_advanced_translation_smoothing_moves_toward_offset() {
 
     let factor = camera_advanced_smoothing_factor(2.0, 0.5);
     assert_vec3_close(transform.translation, Vec3::new(0.0, 0.0, 10.0 * factor));
+}
+
+#[test]
+fn camera_advanced_look_transform_smoothing_keeps_locked_rotation_result() {
+    let camera = CameraAdvancedComponent {
+        constrain_rotation_x: true,
+        constrain_rotation_y: true,
+        constrain_rotation_z: true,
+        translation_smoothing: 2.0,
+        ..Default::default()
+    };
+    let target = CameraAdvancedTarget {
+        translation: Vec3::new(10.0, 0.0, -8.0),
+        rotation: Quat::from_rotation_y(90.0_f32.to_radians()),
+    };
+    let current_transform = Transform::from_translation(camera.follow_offset)
+        .looking_at(camera.look_at_offset, Vec3::Y);
+    let mut look_transform = LookTransform::new(
+        current_transform.translation,
+        current_transform.translation + current_transform.rotation.mul_vec3(Vec3::NEG_Z),
+        current_transform.rotation.mul_vec3(Vec3::Y),
+    );
+    let mut smoother = Smoother::new(camera.smooth_bevy_lag_weight(0.5));
+    smoother.smooth_transform(&look_transform);
+
+    camera_advanced_apply_look_transform(
+        &camera,
+        &target,
+        0.5,
+        &current_transform,
+        &mut look_transform,
+        &mut smoother,
+    );
+    let smoothed_transform: Transform = smoother.smooth_transform(&look_transform).into();
+
+    let factor = camera_advanced_smoothing_factor(2.0, 0.5);
+    let desired_translation = Vec3::new(-0.5, 9.0, -18.5);
+    assert_vec3_close(
+        smoothed_transform.translation,
+        current_transform
+            .translation
+            .lerp(desired_translation, factor),
+    );
+    assert_quat_close(smoothed_transform.rotation, current_transform.rotation);
 }
 
 #[test]
@@ -223,4 +269,11 @@ fn assert_vec3_close(actual: Vec3, expected: Vec3) {
     assert_close(actual.x, expected.x);
     assert_close(actual.y, expected.y);
     assert_close(actual.z, expected.z);
+}
+
+fn assert_quat_close(actual: Quat, expected: Quat) {
+    assert_close(actual.x, expected.x);
+    assert_close(actual.y, expected.y);
+    assert_close(actual.z, expected.z);
+    assert_close(actual.w, expected.w);
 }

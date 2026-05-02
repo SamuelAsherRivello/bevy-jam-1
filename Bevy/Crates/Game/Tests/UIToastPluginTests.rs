@@ -1,6 +1,9 @@
-use crate::ui_toast_system::{
-    UI_TOAST_HEIGHT, UI_TOAST_SLIDE_IN_TIME, UI_TOAST_SLIDE_OUT_TIME, UI_TOAST_STAY_TIME,
-    UI_TOAST_TOP_PIXELS, UIToastLifecycleAction, ui_toast_lifecycle_action, ui_toast_top_for_age,
+use crate::{
+    ui_hud_system::SCREEN_PADDING_TOP,
+    ui_toast_system::{
+        UI_TOAST_HEIGHT, UI_TOAST_SLIDE_IN_TIME, UI_TOAST_SLIDE_OUT_TIME, UI_TOAST_STAY_TIME,
+        UIToastLifecycleAction, ui_toast_lifecycle_action, ui_toast_top_for_age,
+    },
 };
 
 #[test]
@@ -41,7 +44,7 @@ fn ui_toast_replaces_current_in_place_when_queue_is_waiting() {
             UI_TOAST_STAY_TIME,
             UI_TOAST_SLIDE_OUT_TIME,
         ),
-        UI_TOAST_TOP_PIXELS
+        SCREEN_PADDING_TOP
     );
 }
 

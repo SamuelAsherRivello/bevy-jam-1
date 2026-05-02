@@ -4,12 +4,14 @@ use hot_reload::prelude::hot;
 
 use crate::{
     game_reset_component::GameResetComponent, game_scene_resource::GameSceneResource,
-    ui_toast_component::UIToastComponent, ui_toast_queue_resource::UIToastQueueResource,
+    ui_hud_system::SCREEN_PADDING_TOP, ui_toast_component::UIToastComponent,
+    ui_toast_queue_resource::UIToastQueueResource,
 };
 
 pub(crate) const UI_TOAST_WIDTH: f32 = 360.0;
 pub(crate) const UI_TOAST_HEIGHT: f32 = 57.6;
-pub(crate) const UI_TOAST_TOP_PIXELS: f32 = 24.0;
+#[allow(dead_code)]
+pub(crate) const UI_TOAST_TOP_PIXELS: f32 = SCREEN_PADDING_TOP;
 pub(crate) const UI_TOAST_SLIDE_IN_TIME: f32 = 0.5;
 pub(crate) const UI_TOAST_SLIDE_OUT_TIME: f32 = 0.5;
 pub(crate) const UI_TOAST_STAY_TIME: f32 = 2.0;
@@ -176,7 +178,7 @@ pub(crate) fn ui_toast_top_for_age(
     slide_out_seconds: f32,
 ) -> f32 {
     let hidden_top = -height;
-    let visible_top = UI_TOAST_TOP_PIXELS;
+    let visible_top = SCREEN_PADDING_TOP;
 
     if age_seconds < slide_in_seconds {
         let progress = (age_seconds / slide_in_seconds).clamp(0.0, 1.0);

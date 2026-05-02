@@ -1,4 +1,5 @@
-use bevy::prelude::{App, Plugin, Update};
+use bevy::prelude::{App, IntoScheduleConfigs, Plugin, Update};
+use smooth_bevy_cameras::{LookTransformPlugin, look_transform_system};
 
 use crate::camera_advanced_system::camera_advanced_update_system;
 
@@ -7,6 +8,9 @@ pub struct CameraAdvancedPlugin;
 
 impl Plugin for CameraAdvancedPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, camera_advanced_update_system);
+        app.add_plugins(LookTransformPlugin).add_systems(
+            Update,
+            camera_advanced_update_system.before(look_transform_system),
+        );
     }
 }

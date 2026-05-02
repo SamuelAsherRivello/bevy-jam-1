@@ -1,6 +1,9 @@
 [workspace]
 members = ["Bevy/Crates/Game", "Bevy/Crates/Shared"]
-exclude = ["Bevy/Crates/Shared/Runtime/3rdParty/bevy_simple_subsecond_system"]
+exclude = [
+    "Bevy/Crates/Shared/Runtime/3rdParty/bevy_simple_subsecond_system",
+    "Bevy/Crates/Shared/Runtime/3rdParty/smooth-bevy-cameras",
+]
 resolver = "3"
 
 [profile.dev]

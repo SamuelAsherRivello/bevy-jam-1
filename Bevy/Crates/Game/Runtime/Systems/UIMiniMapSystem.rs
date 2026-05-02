@@ -16,6 +16,9 @@ use crate::{
     game_scene_resource::GameSceneResource,
     input_component::InputComponent,
     player_component::PlayerComponent,
+    ui_hud_system::{
+        SCREEN_PADDING_BOTTOM, SCREEN_PADDING_LEFT, SCREEN_PADDING_RIGHT, SCREEN_PADDING_TOP,
+    },
     ui_mini_map_component::{UIMiniMapComponent, UIMiniMapTarget},
     ui_mini_map_viewport_component::UIMiniMapViewportComponent,
     ui_mini_map_viewport_resource::UIMiniMapViewportResource,
@@ -25,7 +28,7 @@ use crate::{
 const UI_MINI_MAP_CAMERA_HEIGHT: f32 = 80.0;
 const UI_MINI_MAP_CAMERA_ORDER: isize = 100;
 const UI_MINI_MAP_DEBUG_VIEWPORT_CAMERA_ORDER: isize = 101;
-const UI_MINI_MAP_VIEWPORT_MARGIN_PIXELS: u32 = 16;
+pub(crate) const UI_MINI_MAP_VIEWPORT_MARGIN_PIXELS: u32 = (SCREEN_PADDING_RIGHT as u32) * 2;
 const UI_MINI_MAP_VIEWPORT_MAX_SIZE_PIXELS: u32 = 260;
 const UI_MINI_MAP_VIEWPORT_MIN_SIZE_PIXELS: u32 = 120;
 const UI_MINI_MAP_VIEWPORT_SIZE_RATIO: f32 = 0.24;
@@ -291,10 +294,22 @@ pub(crate) fn ui_mini_map_viewport_for_window(window: &Window) -> Viewport {
 }
 
 pub(crate) fn ui_mini_map_viewport_for_physical_size(window_size: UVec2) -> Viewport {
+    let screen_padding_top = SCREEN_PADDING_TOP as u32;
+    let screen_padding_left = SCREEN_PADDING_LEFT as u32;
+    let screen_padding_bottom = SCREEN_PADDING_BOTTOM as u32;
+    let screen_padding_right = SCREEN_PADDING_RIGHT as u32;
+    let viewport_margin = UI_MINI_MAP_VIEWPORT_MARGIN_PIXELS;
+    let available_width = window_size
+        .x
+        .saturating_sub(screen_padding_left + screen_padding_right);
+    let available_height = window_size
+        .y
+        .saturating_sub(screen_padding_top + screen_padding_bottom);
     let available_size = window_size
         .x
         .min(window_size.y)
-        .saturating_sub(UI_MINI_MAP_VIEWPORT_MARGIN_PIXELS * 2);
+        .min(available_width)
+        .min(available_height);
     let desired_size = (available_size as f32 * UI_MINI_MAP_VIEWPORT_SIZE_RATIO).round() as u32;
     let viewport_size = desired_size
         .clamp(
@@ -304,8 +319,8 @@ pub(crate) fn ui_mini_map_viewport_for_physical_size(window_size: UVec2) -> View
         .min(available_size.max(1));
     let x = window_size
         .x
-        .saturating_sub(viewport_size + UI_MINI_MAP_VIEWPORT_MARGIN_PIXELS);
-    let y = UI_MINI_MAP_VIEWPORT_MARGIN_PIXELS.min(window_size.y.saturating_sub(viewport_size));
+        .saturating_sub(viewport_size + viewport_margin);
+    let y = viewport_margin.min(window_size.y.saturating_sub(viewport_size));
 
     Viewport {
         physical_position: UVec2::new(x, y),
